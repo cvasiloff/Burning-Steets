@@ -9,6 +9,10 @@ public class NetworkedGM : NetworkComponent
 
     bool GameReady = false;
     public NetworkPlayer[] MyPlayers;
+    GameObject[] Team1Spawn;
+    GameObject[] Team2Spawn;
+    public int scoreTeam1 = 0;
+    public int scoreTeam2 = 0;
 
     public override void HandleMessage(string flag, string value)
     {

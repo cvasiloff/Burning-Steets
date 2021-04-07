@@ -13,6 +13,7 @@ public class NetworkPlayer : NetworkComponent
     public int ModelNum;
 
     public bool isReady = false;
+    public string Team = "";
 
 
     public int playerCount = 0;
@@ -64,6 +65,11 @@ public class NetworkPlayer : NetworkComponent
             }
         }
 
+        if(flag == "TEAM" && IsClient)
+        {
+            Team = value;
+        }
+
     }
 
 
@@ -101,6 +107,7 @@ public class NetworkPlayer : NetworkComponent
                     SendUpdate("READY", isReady.ToString());
                     SendUpdate("COLOR", ColorType);
                     SendUpdate("MODEL", ModelNum.ToString());
+                    SendUpdate("TEAM", Team);
                     IsDirty = false;
                 }
             }
