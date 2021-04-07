@@ -42,21 +42,7 @@ public class NetworkPlayerController : NetworkComponent
             //gameObject.GetComponent<Rigidbody>().angularVelocity = tempAngular;
             //MyCam.transform.rotation = Quaternion.Euler(-cameraY, cameraX, 0);
 
-            mRotationX = float.Parse(args[0]) * sensitivity;
-
-            mRotationY = float.Parse(args[1]) * sensitivity;
-
-            if (mRotationX != 0)
-            {
-                cameraX += mRotationX;
-            }
-
-            if (mRotationY != 0)
-            {
-                cameraY += mRotationY;
-            }
-
-            cameraY = Mathf.Clamp(cameraY, minY, maxY);
+            
 
             //MyRig.transform.eulerAngles = new Vector3(0, cameraX, 0);
 
@@ -64,11 +50,11 @@ public class NetworkPlayerController : NetworkComponent
             {
                 //Debug.Log(MyRig.rotation.eulerAngles - new Vector3(0, float.Parse(args[0]), 0));
                 //MyRig.angularVelocity = new Vector3(0, float.Parse(args[0]) - PrevX, 0);
-                MyRig.transform.eulerAngles = new Vector3(0, cameraX, 0);
+                MyRig.transform.eulerAngles = new Vector3(0, float.Parse(args[0]), 0);
             }
             if (IsLocalPlayer)
             {
-                MyCam.transform.eulerAngles = new Vector3(-cameraY, cameraX, 0);
+                
                 //MyCam.GetComponent<Rigidbody>().angularVelocity = new Vector3(-(float.Parse(args[1]) - PrevY),float.Parse(args[0]) - PrevX, 0);
             }
 
@@ -125,9 +111,9 @@ public class NetworkPlayerController : NetworkComponent
             {
                 SendCommand("MOVE", Input.GetAxisRaw("Vertical").ToString() + ',' + Input.GetAxisRaw("Horizontal").ToString());
 
-                //SendCommand("ROTATE", cameraX.ToString() + ',' + cameraY.ToString());
+                SendCommand("ROTATE", cameraX.ToString() + ',' + cameraY.ToString());
 
-                SendCommand("ROTATE", Input.GetAxisRaw("Mouse X").ToString() + ',' + Input.GetAxisRaw("Mouse Y").ToString());
+                //SendCommand("ROTATE", Input.GetAxisRaw("Mouse X").ToString() + ',' + Input.GetAxisRaw("Mouse Y").ToString());
 
             }
 
@@ -165,8 +151,24 @@ public class NetworkPlayerController : NetworkComponent
 
             //MyCam.transform.position = Vector3.Lerp(MyCam.transform.position, MyRig.transform.position, 0.2f);
 
+            mRotationX = Input.GetAxisRaw("Mouse X") * sensitivity;
 
-            
+            mRotationY = Input.GetAxisRaw("Mouse Y") * sensitivity;
+
+            if (mRotationX != 0)
+            {
+                cameraX += mRotationX;
+            }
+
+            if (mRotationY != 0)
+            {
+                cameraY += mRotationY;
+            }
+
+            cameraY = Mathf.Clamp(cameraY, minY, maxY);
+
+            MyCam.transform.eulerAngles = new Vector3(-cameraY, cameraX, 0);
+
 
         }
     }
