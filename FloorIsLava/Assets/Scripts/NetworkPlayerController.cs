@@ -17,9 +17,6 @@ public class NetworkPlayerController : NetworkComponent
     private float mRotationX;
     private float mRotationY;
 
-    private float PrevX = 0;
-    private float PrevY = 0;
-
     private float cameraX = 0f;
     private float cameraY = 0f;
 
@@ -41,26 +38,40 @@ public class NetworkPlayerController : NetworkComponent
         {
             string[] args = value.Split(',');
 
-            float AccelX = float.Parse(args[0]) - PrevX;
-            float Accely = float.Parse(args[1]) - PrevY;
-
             //tempAngular = Vector3.up  * float.Parse(args[0]) * 5;
             //gameObject.GetComponent<Rigidbody>().angularVelocity = tempAngular;
             //MyCam.transform.rotation = Quaternion.Euler(-cameraY, cameraX, 0);
-            if (IsServer)
+
+            mRotationX = float.Parse(args[0]) * sensitivity;
+
+            mRotationY = float.Parse(args[1]) * sensitivity;
+
+            if (mRotationX != 0)
             {
-                Debug.Log(MyRig.rotation.eulerAngles - new Vector3(0, float.Parse(args[0]), 0));
-                MyRig.angularVelocity = new Vector3(0, float.Parse(args[0]) - PrevX, 0);
-                //MyRig.transform.eulerAngles = new Vector3(0, float.Parse(args[0]), 0);
-            }
-            if(IsLocalPlayer)
-            {
-                //MyCam.transform.eulerAngles = new Vector3(-float.Parse(args[1]), float.Parse(args[0]), 0);
-                MyCam.GetComponent<Rigidbody>().angularVelocity = new Vector3(-(float.Parse(args[1]) - PrevY),float.Parse(args[0]) - PrevX, 0);
+                cameraX += mRotationX;
             }
 
-            PrevX = float.Parse(args[0]);
-            PrevY = float.Parse(args[1]);
+            if (mRotationY != 0)
+            {
+                cameraY += mRotationY;
+            }
+
+            cameraY = Mathf.Clamp(cameraY, minY, maxY);
+
+            //MyRig.transform.eulerAngles = new Vector3(0, cameraX, 0);
+
+            if (IsServer)
+            {
+                //Debug.Log(MyRig.rotation.eulerAngles - new Vector3(0, float.Parse(args[0]), 0));
+                //MyRig.angularVelocity = new Vector3(0, float.Parse(args[0]) - PrevX, 0);
+                MyRig.transform.eulerAngles = new Vector3(0, cameraX, 0);
+            }
+            if (IsLocalPlayer)
+            {
+                MyCam.transform.eulerAngles = new Vector3(-cameraY, cameraX, 0);
+                //MyCam.GetComponent<Rigidbody>().angularVelocity = new Vector3(-(float.Parse(args[1]) - PrevY),float.Parse(args[0]) - PrevX, 0);
+            }
+
             SendUpdate("ROTATE", args[0] + ',' + args[1]);
         }
 
@@ -112,34 +123,17 @@ public class NetworkPlayerController : NetworkComponent
         {
             if(IsLocalPlayer)
             {
-                mRotationX = Input.GetAxisRaw("Mouse X") * sensitivity;
-
-                mRotationY = Input.GetAxisRaw("Mouse Y") * sensitivity;
-
-                if (mRotationX != 0)
-                {
-                    cameraX += mRotationX;
-                }
-
-                if (mRotationY != 0)
-                {
-                    cameraY += mRotationY;
-                }
-
-                cameraY = Mathf.Clamp(cameraY, minY, maxY);
-
                 SendCommand("MOVE", Input.GetAxisRaw("Vertical").ToString() + ',' + Input.GetAxisRaw("Horizontal").ToString());
 
-                SendCommand("ROTATE", cameraX.ToString() + ',' + cameraY.ToString());
+                //SendCommand("ROTATE", cameraX.ToString() + ',' + cameraY.ToString());
 
-                //SendCommand("ROTATE", Input.GetAxisRaw("Mouse X").ToString() + ',' + Input.GetAxisRaw("Mouse Y").ToString());
+                SendCommand("ROTATE", Input.GetAxisRaw("Mouse X").ToString() + ',' + Input.GetAxisRaw("Mouse Y").ToString());
 
             }
 
             //IfClient...
             if(IsServer)
             {
-                MyRig.rotation = Quaternion.Euler(MyRig.rotation.x ,Mathf.Clamp(MyRig.rotation.y, minY, maxY), MyRig.rotation.z);
                 if (IsDirty)
                 {
                     //Update non-movement varialbes
