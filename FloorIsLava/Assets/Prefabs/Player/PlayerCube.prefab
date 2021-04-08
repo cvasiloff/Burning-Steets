@@ -146,6 +146,8 @@ MonoBehaviour:
   MyRig: {fileID: 0}
   tempVelocity: {x: 0, y: 0, z: 0}
   tempAngular: {x: 0, y: 0, z: 0}
+  JumpHeight: 5
+  MaxJumpNum: 2
 --- !u!114 &3013119708790253215
 MonoBehaviour:
   m_ObjectHideFlags: 0

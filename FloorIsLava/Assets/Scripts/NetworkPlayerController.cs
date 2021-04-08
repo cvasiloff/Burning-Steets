@@ -13,6 +13,11 @@ public class NetworkPlayerController : NetworkComponent
     public Rigidbody MyRig;
     public Vector3 tempVelocity;
     public Vector3 tempAngular;
+    public int JumpHeight;
+
+    public int MaxJumpNum;
+    private int JumpNum;
+    private bool JumpButtonDown;
 
     private float mRotationX;
     private float mRotationY;
@@ -37,27 +42,11 @@ public class NetworkPlayerController : NetworkComponent
         if(flag == "ROTATE")
         {
             string[] args = value.Split(',');
-
-            //tempAngular = Vector3.up  * float.Parse(args[0]) * 5;
-            //gameObject.GetComponent<Rigidbody>().angularVelocity = tempAngular;
-            //MyCam.transform.rotation = Quaternion.Euler(-cameraY, cameraX, 0);
-
             
-
-            //MyRig.transform.eulerAngles = new Vector3(0, cameraX, 0);
-
             if (IsServer)
             {
-                //Debug.Log(MyRig.rotation.eulerAngles - new Vector3(0, float.Parse(args[0]), 0));
-                //MyRig.angularVelocity = new Vector3(0, float.Parse(args[0]) - PrevX, 0);
                 MyRig.transform.eulerAngles = new Vector3(0, float.Parse(args[0]), 0);
             }
-            if (IsLocalPlayer)
-            {
-                
-                //MyCam.GetComponent<Rigidbody>().angularVelocity = new Vector3(-(float.Parse(args[1]) - PrevY),float.Parse(args[0]) - PrevX, 0);
-            }
-
             SendUpdate("ROTATE", args[0] + ',' + args[1]);
         }
 
@@ -94,8 +83,18 @@ public class NetworkPlayerController : NetworkComponent
             }
         }
 
+        if(flag == "JUMP")
+        {
+            Debug.Log("Jumping!");
+            if (IsServer)
+            {
+                MyRig.velocity = new Vector3(MyRig.velocity.x, float.Parse(value) * JumpHeight , MyRig.velocity.z);
+            }
+            JumpNum--;
+        }
     }
 
+    
 
     public override IEnumerator SlowUpdate()
     {
@@ -110,11 +109,14 @@ public class NetworkPlayerController : NetworkComponent
             if(IsLocalPlayer)
             {
                 SendCommand("MOVE", Input.GetAxisRaw("Vertical").ToString() + ',' + Input.GetAxisRaw("Horizontal").ToString());
-
                 SendCommand("ROTATE", cameraX.ToString() + ',' + cameraY.ToString());
 
-                //SendCommand("ROTATE", Input.GetAxisRaw("Mouse X").ToString() + ',' + Input.GetAxisRaw("Mouse Y").ToString());
-
+                if (Input.GetAxisRaw("Jump") > 0 && JumpNum > 0 && !JumpButtonDown)
+                {
+                    SendCommand("JUMP", "1");
+                    JumpButtonDown = true;
+                    JumpNum--;
+                }
             }
 
             //IfClient...
@@ -136,7 +138,7 @@ public class NetworkPlayerController : NetworkComponent
     {
         MyRig = GetComponent<Rigidbody>();
         MyCam = Camera.main;
-            
+        JumpNum = MaxJumpNum;
     }
 
 
@@ -145,12 +147,6 @@ public class NetworkPlayerController : NetworkComponent
     {
         if (IsLocalPlayer)
         {
-            //Camera.main.transform.position = MyRig.transform.position + MyRig.transform.up * 2;
-            //Camera.main.transform.rotation = MyRig.transform.rotation;
-            //Camera.main.transform.rotation = Quaternion.Euler(Vector3.Lerp(this.gameObject.GetComponent<NetworkRigidBody>().LastRotation, MyRig.gameObject.transform.rotation.eulerAngles, .5f));
-
-            //MyCam.transform.position = Vector3.Lerp(MyCam.transform.position, MyRig.transform.position, 0.2f);
-
             mRotationX = Input.GetAxisRaw("Mouse X") * sensitivity;
 
             mRotationY = Input.GetAxisRaw("Mouse Y") * sensitivity;
@@ -169,7 +165,10 @@ public class NetworkPlayerController : NetworkComponent
 
             MyCam.transform.eulerAngles = new Vector3(-cameraY, cameraX, 0);
 
-
+            if(Input.GetButtonUp("Jump"))
+            {
+                JumpButtonDown = false;
+            }
         }
     }
 
@@ -178,4 +177,11 @@ public class NetworkPlayerController : NetworkComponent
         MyCam.transform.position = Vector3.Lerp(MyCam.transform.position, CameraPos.position, 0.2f);
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        if(collision.gameObject.tag == "Floor")
+        {
+            JumpNum = MaxJumpNum;
+        }
+    }
 }
