@@ -6,11 +6,23 @@ using UnityEngine.UI;
 
 public class NetworkPlayerController : NetworkComponent
 {
-
+    public float sensitivity;
     public int MoveSpeed;
+    public Camera MyCam;
+    public Transform CameraPos;
     public Rigidbody MyRig;
     public Vector3 tempVelocity;
     public Vector3 tempAngular;
+
+    private float mRotationX;
+    private float mRotationY;
+
+    private float cameraX = 0f;
+    private float cameraY = 0f;
+
+    private float minY = -60f;
+    private float maxY = 60f;
+
     public override void HandleMessage(string flag, string value)
     {
 
@@ -24,8 +36,29 @@ public class NetworkPlayerController : NetworkComponent
 
         if(flag == "ROTATE")
         {
-            tempAngular = Vector3.up  * float.Parse(value) * 5;
-            gameObject.GetComponent<Rigidbody>().angularVelocity = tempAngular;
+            string[] args = value.Split(',');
+
+            //tempAngular = Vector3.up  * float.Parse(args[0]) * 5;
+            //gameObject.GetComponent<Rigidbody>().angularVelocity = tempAngular;
+            //MyCam.transform.rotation = Quaternion.Euler(-cameraY, cameraX, 0);
+
+            
+
+            //MyRig.transform.eulerAngles = new Vector3(0, cameraX, 0);
+
+            if (IsServer)
+            {
+                //Debug.Log(MyRig.rotation.eulerAngles - new Vector3(0, float.Parse(args[0]), 0));
+                //MyRig.angularVelocity = new Vector3(0, float.Parse(args[0]) - PrevX, 0);
+                MyRig.transform.eulerAngles = new Vector3(0, float.Parse(args[0]), 0);
+            }
+            if (IsLocalPlayer)
+            {
+                
+                //MyCam.GetComponent<Rigidbody>().angularVelocity = new Vector3(-(float.Parse(args[1]) - PrevY),float.Parse(args[0]) - PrevX, 0);
+            }
+
+            SendUpdate("ROTATE", args[0] + ',' + args[1]);
         }
 
         if (flag == "PNAME")
@@ -66,20 +99,28 @@ public class NetworkPlayerController : NetworkComponent
 
     public override IEnumerator SlowUpdate()
     {
+        if (IsLocalPlayer)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
 
-        while(true)
+        while (true)
         {
             if(IsLocalPlayer)
             {
                 SendCommand("MOVE", Input.GetAxisRaw("Vertical").ToString() + ',' + Input.GetAxisRaw("Horizontal").ToString());
-                SendCommand("ROTATE", Input.GetAxisRaw("Mouse X").ToString());
+
+                SendCommand("ROTATE", cameraX.ToString() + ',' + cameraY.ToString());
+
+                //SendCommand("ROTATE", Input.GetAxisRaw("Mouse X").ToString() + ',' + Input.GetAxisRaw("Mouse Y").ToString());
+
             }
 
             //IfClient...
             if(IsServer)
             {
-
-                if(IsDirty)
+                if (IsDirty)
                 {
                     //Update non-movement varialbes
 
@@ -94,7 +135,8 @@ public class NetworkPlayerController : NetworkComponent
     void Start()
     {
         MyRig = GetComponent<Rigidbody>();
-
+        MyCam = Camera.main;
+            
     }
 
 
@@ -103,10 +145,37 @@ public class NetworkPlayerController : NetworkComponent
     {
         if (IsLocalPlayer)
         {
-            Camera.main.transform.position = MyRig.transform.position + MyRig.transform.up * 2;
-            Camera.main.transform.rotation = MyRig.transform.rotation;
-            Camera.main.transform.rotation = Quaternion.Euler(Vector3.Lerp(this.gameObject.GetComponent<NetworkRigidBody>().LastRotation, MyRig.gameObject.transform.rotation.eulerAngles, .5f));
+            //Camera.main.transform.position = MyRig.transform.position + MyRig.transform.up * 2;
+            //Camera.main.transform.rotation = MyRig.transform.rotation;
+            //Camera.main.transform.rotation = Quaternion.Euler(Vector3.Lerp(this.gameObject.GetComponent<NetworkRigidBody>().LastRotation, MyRig.gameObject.transform.rotation.eulerAngles, .5f));
+
+            //MyCam.transform.position = Vector3.Lerp(MyCam.transform.position, MyRig.transform.position, 0.2f);
+
+            mRotationX = Input.GetAxisRaw("Mouse X") * sensitivity;
+
+            mRotationY = Input.GetAxisRaw("Mouse Y") * sensitivity;
+
+            if (mRotationX != 0)
+            {
+                cameraX += mRotationX;
+            }
+
+            if (mRotationY != 0)
+            {
+                cameraY += mRotationY;
+            }
+
+            cameraY = Mathf.Clamp(cameraY, minY, maxY);
+
+            MyCam.transform.eulerAngles = new Vector3(-cameraY, cameraX, 0);
+
+
         }
+    }
+
+    private void LateUpdate()
+    {
+        MyCam.transform.position = Vector3.Lerp(MyCam.transform.position, CameraPos.position, 0.2f);
     }
 
 }
