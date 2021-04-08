@@ -87,6 +87,7 @@ public class NetworkPlayer : NetworkComponent
             {
                 if (x.NetId == this.NetId)
                 {
+                    Debug.Log(x.transform.GetChild(0).GetComponent<Canvas>().gameObject.name);
                     x.transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(true);
                 }
             }

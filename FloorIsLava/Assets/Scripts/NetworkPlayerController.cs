@@ -174,7 +174,8 @@ public class NetworkPlayerController : NetworkComponent
 
     private void LateUpdate()
     {
-        MyCam.transform.position = Vector3.Lerp(MyCam.transform.position, CameraPos.position, 0.2f);
+        if(IsLocalPlayer)
+            MyCam.transform.position = Vector3.Lerp(MyCam.transform.position, CameraPos.position, 0.2f);
     }
 
     private void OnCollisionEnter(Collision collision)
