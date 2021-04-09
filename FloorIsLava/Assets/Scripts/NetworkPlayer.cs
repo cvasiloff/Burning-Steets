@@ -70,9 +70,34 @@ public class NetworkPlayer : NetworkComponent
             Team = value;
         }
 
+        if (flag == "SETTEAM")
+        {
+            SetPlayerTeam(this, value);
+            if (IsServer)
+            {
+                SendUpdate("SETTEAM", value);
+            }
+        }
+        if (flag == "READYUP")
+        {
+            SetPlayerReady(this);
+            if (IsServer)
+            {
+                SendUpdate("READYUP", value);
+            }
+        }
+
     }
 
+    void SetPlayerReady(NetworkPlayer player)
+    {
+        isReady = true;
+    }
 
+    void SetPlayerTeam(NetworkPlayer player, string team)
+    {
+        Team = team;
+    }
 
     public override IEnumerator SlowUpdate()
     {
