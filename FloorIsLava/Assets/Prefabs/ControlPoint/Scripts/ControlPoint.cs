@@ -133,7 +133,7 @@ public class ControlPoint : NetworkComponent
         }
         else if(captureRed && captureGreen)
         {
-            myFlag.velocity = new Vector3(0, .25f, 0);
+            myFlag.velocity = new Vector3(0, 0f, 0);
             captureDir = 0;
         }    
     }
