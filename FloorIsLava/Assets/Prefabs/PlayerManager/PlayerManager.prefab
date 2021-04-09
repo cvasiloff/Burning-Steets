@@ -312,7 +312,7 @@ MonoBehaviour:
   ColorType: 
   ModelNum: 0
   isReady: 0
-  Team: 
+  Team: RED
   playerCount: 0
 --- !u!1 &8326400636121034244
 GameObject:
