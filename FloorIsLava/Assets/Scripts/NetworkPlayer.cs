@@ -13,7 +13,7 @@ public class NetworkPlayer : NetworkComponent
     public int ModelNum;
 
     public bool isReady = false;
-    public string Team = "";
+    public string Team = "RED";
 
 
     public int playerCount = 0;

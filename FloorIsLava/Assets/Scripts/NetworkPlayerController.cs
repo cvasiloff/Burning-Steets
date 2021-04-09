@@ -32,22 +32,18 @@ public class NetworkPlayerController : NetworkComponent
     {
 
 
-        if (flag == "MOVE")
+        if (flag == "MOVE" && IsServer)
         {
             string[] args = value.Split(',');
             tempVelocity = (this.transform.forward * float.Parse(args[0]) + this.transform.right * float.Parse(args[1])).normalized * MoveSpeed + new Vector3(0, MyRig.velocity.y, 0);
             gameObject.GetComponent<Rigidbody>().velocity = tempVelocity;
         }
 
-        if(flag == "ROTATE")
+        if(flag == "ROTATE" && IsServer)
         {
-            string[] args = value.Split(',');
+            string[] args = value.Split(',');      
+            MyRig.transform.eulerAngles = new Vector3(0, float.Parse(args[0]), 0);
             
-            if (IsServer)
-            {
-                MyRig.transform.eulerAngles = new Vector3(0, float.Parse(args[0]), 0);
-            }
-            SendUpdate("ROTATE", args[0] + ',' + args[1]);
         }
 
         if (flag == "PNAME")
