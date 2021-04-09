@@ -76,3 +76,5 @@ MonoBehaviour:
   MyCore: {fileID: 0}
   MyId: {fileID: 0}
   MyPlayers: []
+  scoreTeam1: 0
+  scoreTeam2: 0

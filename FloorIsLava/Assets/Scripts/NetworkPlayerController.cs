@@ -180,5 +180,21 @@ public class NetworkPlayerController : NetworkComponent
         {
             JumpNum = MaxJumpNum;
         }
+
+        if(collision.gameObject.tag == "Lobby")
+        {
+            string temp = collision.gameObject.name;
+            if(IsClient)
+            {
+                NetworkPlayer[] playersInScene = GameObject.FindObjectsOfType<NetworkPlayer>();
+                foreach (NetworkPlayer p in playersInScene)
+                {
+                    if (p.Owner == this.Owner)
+                    {
+                        p.SendCommand("SETTEAM", temp);
+                    }
+                }
+            }
+        }
     }
 }
