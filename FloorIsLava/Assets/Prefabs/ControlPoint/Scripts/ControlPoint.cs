@@ -13,8 +13,7 @@ public class ControlPoint : NetworkComponent
     public float captureTime;
     public float captureTimer;
 
-    public float flagBase;
-    public float flagGoal;
+    public Vector3 flagVel;
 
     public Rigidbody myFlag;
 
@@ -64,14 +63,32 @@ public class ControlPoint : NetworkComponent
             else
                 myFlag.GetComponent<Renderer>().material.color = Color.green;
         }
+
+        if(flag == "FLAGMOVE" && IsClient)
+        {
+            myFlag.velocity = VectorFromString(value);
+        }
+    }
+
+    public Vector3 VectorFromString(string value)
+    {
+        string[] temp = value.Trim('(', ')').Split(',');
+        Vector3 ParseVector = new Vector3();
+
+        for (int i = 0; i < 3; i++)
+        {
+            ParseVector[i] = float.Parse(temp[i]);
+        }
+
+        return ParseVector;
     }
 
     public override IEnumerator SlowUpdate()
     {
-        
-        while(true)
+        myFlag = this.transform.GetChild(2).GetComponent<Rigidbody>();
+        while (true)
         {
-            myFlag = GameObject.FindGameObjectWithTag("Flag").GetComponent<Rigidbody>();
+            
             if (IsServer)
             {
                 //Send update on flags capture progress
@@ -90,51 +107,92 @@ public class ControlPoint : NetworkComponent
                 }
                 
             }
+
+            if(IsClient)
+            {
+
+            }
             yield return new WaitForSeconds(MyCore.MasterTimer);
         }
     }
 
+    public void MoveFlag()
+    {
+
+    }
     public void CaptureTeam()
     {
-        if(!(captureRed && captureGreen))
+        Vector3 moveUp = new Vector3(0, .22f, 0);
+        if (!(captureRed && captureGreen))
         {
             
             if (captureRed)
             {
                 if(captureTimer > 0)
                 {
-                    myFlag.velocity = new Vector3(0, .25f, 0);
-                    SendUpdate("FLAGCOLOR", "RED");
-                    myFlag.GetComponent<Renderer>().material.color = Color.red;
+                    if(flagVel != moveUp)
+                    {
+                        flagVel = moveUp;
+                        SendUpdate("FLAGCOLOR", "RED");
+                        SendUpdate("FLAGMOVE", flagVel.ToString());
+                        //myFlag.GetComponent<Renderer>().material.color = Color.red;
+                    }  
                 }
+
                 else
-                    myFlag.velocity = new Vector3(0, -.25f, 0);
+                {
+                    if (flagVel != moveUp * -1)
+                    {
+                        flagVel = moveUp * -1;
+                        SendUpdate("FLAGMOVE", flagVel.ToString());
+                    }
+                }
+                    
                 captureDir = 1;
             }
             else if(captureGreen)
             {
                 if (captureTimer < 0)
                 {
-                    myFlag.velocity = new Vector3(0, .25f, 0);
-                    SendUpdate("FLAGCOLOR", "GREEN");
-                    myFlag.GetComponent<Renderer>().material.color = Color.green;
+                    if (flagVel != moveUp)
+                    {
+                        flagVel = moveUp;
+                        SendUpdate("FLAGCOLOR", "GREEN");
+                        SendUpdate("FLAGMOVE", flagVel.ToString());
+                        //myFlag.GetComponent<Renderer>().material.color = Color.green;
+                    }
                 }
                     
                 else
-                    myFlag.velocity = new Vector3(0, -.25f, 0);
+                {
+                    if (flagVel != moveUp * -1)
+                    {
+                        flagVel = moveUp * -1;
+                        SendUpdate("FLAGMOVE", flagVel.ToString());
+                    }
+                }
+                    
 
                 captureDir = -1;
             }
             else
             {
-                myFlag.velocity = new Vector3(0, 0, 0);
-                captureDir = 0;
+                if (flagVel != Vector3.zero)
+                {
+                    flagVel = Vector3.zero;
+                    SendUpdate("FLAGMOVE", flagVel.ToString());
+                    captureDir = 0;
+                }
             }
         }
         else if(captureRed && captureGreen)
         {
-            myFlag.velocity = new Vector3(0, 0f, 0);
-            captureDir = 0;
+            if (flagVel != Vector3.zero)
+            {
+                flagVel = Vector3.zero;
+                SendUpdate("FLAGMOVE", flagVel.ToString());
+                captureDir = 0;
+            }
         }    
     }
 

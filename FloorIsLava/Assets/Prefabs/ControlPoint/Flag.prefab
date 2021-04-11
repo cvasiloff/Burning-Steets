@@ -12,8 +12,6 @@ GameObject:
   - component: {fileID: 4882156956367877183}
   - component: {fileID: 9159007711725786824}
   - component: {fileID: 8283291135128511291}
-  - component: {fileID: 3242362734382648093}
-  - component: {fileID: 6873516870161562864}
   - component: {fileID: 8753046890088398203}
   m_Layer: 0
   m_Name: Flag
@@ -94,57 +92,6 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &3242362734382648093
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 604981466794796153}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1245fa9dfe2c47a4ba554d698f69f343, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Type: 0
-  Owner: -10
-  NetId: -10
-  IsInit: 0
-  IsLocalPlayer: 0
-  IsServer: 0
-  IsClient: 0
-  UpdateFrequency: 0.1
-  MyCore: {fileID: 0}
-  GameObjectMessages: 
---- !u!114 &6873516870161562864
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 604981466794796153}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c62598dcc2c96ea44a71b71cd7a640f0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  IsDirty: 0
-  IsClient: 0
-  IsServer: 0
-  IsLocalPlayer: 0
-  Owner: 0
-  Type: 0
-  NetId: 0
-  MyCore: {fileID: 0}
-  MyId: {fileID: 0}
-  LastPosition: {x: 0, y: 0, z: 0}
-  LastRotation: {x: 0, y: 0, z: 0}
-  LastVelocity: {x: 0, y: 0, z: 0}
-  LastAngular: {x: 0, y: 0, z: 0}
-  OffsetVelocity: {x: 0, y: 0, z: 0}
-  Threshold: 0.1
-  EThreshold: 2.5
-  MyRig: {fileID: 0}
 --- !u!54 &8753046890088398203
 Rigidbody:
   m_ObjectHideFlags: 0
