@@ -44,7 +44,6 @@ public class NetworkPlayer : NetworkComponent
         if (flag == "MODEL")
         {
             ModelNum = int.Parse(value);
-            Debug.Log(ModelNum);
             if (IsServer)
             {
                 SendUpdate("MODEL", ModelNum.ToString());
@@ -112,7 +111,6 @@ public class NetworkPlayer : NetworkComponent
             {
                 if (x.NetId == this.NetId)
                 {
-                    Debug.Log(x.transform.GetChild(0).GetComponent<Canvas>().gameObject.name);
                     x.transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(true);
                 }
             }
@@ -171,7 +169,6 @@ public class NetworkPlayer : NetworkComponent
 
     public void SetModel(Dropdown ValueChanged)
     {
-        Debug.Log(ValueChanged.value);
         if (IsLocalPlayer)
         {
             SendCommand("MODEL", ValueChanged.value.ToString());
