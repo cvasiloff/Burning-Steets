@@ -865,6 +865,8 @@ MonoBehaviour:
   - {fileID: 6911634883404302336, guid: 524ada11bdeae06419682d4ce1a8eddb, type: 3}
   - {fileID: 3035509360632028996, guid: 2cc95246ba3093447a9db156d25c8990, type: 3}
   - {fileID: 604981466794796153, guid: 31d12ae500889b0438f671d4cbcfbc3b, type: 3}
+  - {fileID: 76577849346128645, guid: e105ea83faf9fc34aaa93e77625e79e9, type: 3}
+  - {fileID: 3742694506912352786, guid: b3af1e1b8760e104d84bce9dcf5647cf, type: 3}
   MessageWaiting: 0
   MasterMessage: 
   NetworkPlayerManager: {fileID: 7704310234528940818, guid: b7c7d120205bd294e89824d50fade813,
@@ -1056,7 +1058,7 @@ Transform:
   m_LocalScale: {x: 20, y: 1, z: 20}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1260166305
 GameObject:
@@ -1422,7 +1424,7 @@ PrefabInstance:
     - target: {fileID: 2557633072679439513, guid: c1253419f98922847b5e792da87d7969,
         type: 3}
       propertyPath: m_RootOrder
-      value: 6
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 2557633072679439513, guid: c1253419f98922847b5e792da87d7969,
         type: 3}
@@ -1530,7 +1532,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1804326622
 GameObject:
@@ -2317,7 +2319,7 @@ PrefabInstance:
     - target: {fileID: 5345144699518346869, guid: a64bdac70b409c54493d82bba9f39abc,
         type: 3}
       propertyPath: m_RootOrder
-      value: 9
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 5345144699518346869, guid: a64bdac70b409c54493d82bba9f39abc,
         type: 3}

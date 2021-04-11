@@ -1,0 +1,77 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Weapon : MonoBehaviour
+{
+    public NetworkPlayerController MyController;
+    public Transform BulletSpawn;
+    public int MaxAmmo;
+    public int CurrentAmmo;
+    public bool IsInInventory;
+    public float ROF;
+    public bool CanShoot;
+    public GameObject Projectile;
+    public int ItemID;
+    public string ItemName;
+
+    public IEnumerator FireDelay()
+    {
+        yield return new WaitForSeconds(ROF);
+        if(CurrentAmmo > 0)
+        {
+            CanShoot = true;
+        }
+    }
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        //MyController = transform.root.gameObject.GetComponent<NetworkPlayerController>();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
+
+    public void SetID()
+    {
+        for (int i = 0; i < MyController.WeaponParent.transform.childCount; i++)
+        {
+            if (MyController.WeaponParent.transform.GetChild(i) == this.transform)
+            {
+                ItemID = i;
+                break;
+            }
+        }
+    }
+
+    //call this function for when the player picks up the weapon for the first time this life
+    public void OnPickUp() 
+    {
+        CurrentAmmo = MaxAmmo;
+        IsInInventory = true;
+        CanShoot = true;
+    }
+
+    public void TryFire()
+    {
+        if (CanShoot && CurrentAmmo > 0)
+        {
+            Fire();
+        }
+    }
+
+    private void Fire()
+    {
+        Vector3 temp = MyController.MyCam.gameObject.transform.forward * Projectile.GetComponent<Bullet>().speed;
+        MyController.SendCommand("FIRE", BulletSpawn.position.x.ToString() + ',' + BulletSpawn.position.y.ToString() + ',' +
+            BulletSpawn.position.z.ToString() + ',' + BulletSpawn.rotation.w.ToString() + ',' + BulletSpawn.rotation.x.ToString() + ',' +
+            BulletSpawn.rotation.y.ToString() + ',' + BulletSpawn.rotation.z.ToString() + ',' + temp.x + ',' + temp.y + ',' + temp.z);
+        CurrentAmmo--;
+        CanShoot = false;
+        StartCoroutine(FireDelay());
+    }
+}

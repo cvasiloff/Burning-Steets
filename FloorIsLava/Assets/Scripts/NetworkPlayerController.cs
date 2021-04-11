@@ -6,6 +6,11 @@ using UnityEngine.UI;
 
 public class NetworkPlayerController : NetworkComponent
 {
+    public Weapon WepInHand;
+    public int MaxWepCount;
+    public GameObject WeaponParent;
+    public List<int> Weapons = new List<int>();
+
     public float sensitivity;
     public int MoveSpeed;
     public Camera MyCam;
@@ -88,6 +93,48 @@ public class NetworkPlayerController : NetworkComponent
             }
             JumpNum--;
         }
+
+        if(flag == "ADDWEP")
+        {
+            Weapons.Add(int.Parse(value));
+            WeaponParent.transform.GetChild(int.Parse(value)).GetComponent<Weapon>().OnPickUp();
+        }
+
+        if(flag == "SWITCHWEP")
+        {
+            if(WepInHand != null)
+            {
+                WepInHand.gameObject.SetActive(false);
+            }
+            WepInHand = WeaponParent.transform.GetChild(int.Parse(value)).GetComponent<Weapon>();
+            WepInHand.gameObject.SetActive(true);
+            WepInHand.MyController = this;
+            WepInHand.SetID();
+
+            if (IsLocalPlayer)
+            {
+                WepInHand.transform.SetParent(MyCam.transform);
+            }
+
+            if (IsServer)
+            {
+                SendUpdate("SWITCHWEP", value);
+            }
+        }
+
+        if (flag == "FIRE")
+        {
+            if (WepInHand.CanShoot)
+            {
+                WepInHand.CanShoot = false;
+                string[] args = value.Split(',');
+                GameObject temp = MyCore.NetCreateObject(WepInHand.Projectile.GetComponent<Bullet>().MyType, this.Owner, 
+                    new Vector3( float.Parse(args[0]),  float.Parse(args[1]),  float.Parse(args[2])), new Quaternion( float.Parse(args[3]),  float.Parse(args[4]),  float.Parse(args[5]),  float.Parse(args[6]))); 
+                temp.GetComponent<Rigidbody>().velocity = new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9]));
+                WepInHand.CurrentAmmo--;
+                StartCoroutine(WepInHand.FireDelay());
+            }
+        }
     }
 
     
@@ -99,6 +146,16 @@ public class NetworkPlayerController : NetworkComponent
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
+
+        if(IsServer)
+        {
+            AddWeapon(0);
+        }
+
+        yield return new WaitForSeconds(0.1f);
+
+        if(IsLocalPlayer)
+            SwitchWeapon(0);
 
         while (true)
         {
@@ -113,6 +170,11 @@ public class NetworkPlayerController : NetworkComponent
                     JumpButtonDown = true;
                     JumpNum--;
                 }
+
+                if(Input.GetMouseButton(0))
+                {
+                    WepInHand.TryFire();
+                }
             }
 
             //IfClient...
@@ -126,6 +188,24 @@ public class NetworkPlayerController : NetworkComponent
                 }
             }
             yield return new WaitForSeconds(MyCore.MasterTimer); //Master timer is 0.05f
+        }
+    }
+
+    public void AddWeapon(int ID)
+    {
+        if(Weapons.Count < MaxWepCount && IsServer)
+        {
+            Weapons.Add(ID);
+            WeaponParent.transform.GetChild(ID).GetComponent<Weapon>().OnPickUp();
+            SendUpdate("ADDWEP", ID.ToString());
+        }
+    }
+
+    public void SwitchWeapon(int index)
+    {
+        if(WepInHand == null || WepInHand.ItemID != index)
+        {
+            SendCommand("SWITCHWEP", index.ToString());
         }
     }
 
