@@ -159,7 +159,7 @@ public class NetworkedGM : NetworkComponent
     {
         Debug.Log("Activating Next Control Point");
         //Activate Next Checkpoint
-        if (newControlPoint.Length >= currControlPoint)
+        if (newControlPoint.Length > currControlPoint)
         {
             MyCore.NetCreateObject(2, -1, newControlPoint[currControlPoint]);
             currControlPoint++;
