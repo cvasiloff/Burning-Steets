@@ -48,11 +48,6 @@ public class Lava : NetworkComponent
        
     }
 
-    IEnumerator WaitForLava()
-    {
-        yield return new WaitForSeconds(MyCore.MasterTimer);
-    }
-
 
     // Start is called before the first frame update
     void Start()

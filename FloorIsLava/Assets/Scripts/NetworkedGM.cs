@@ -14,6 +14,9 @@ public class NetworkedGM : NetworkComponent
     public int scoreTeamRed = 0;
     public int scoreTeamGreen = 0;
 
+    public Vector3[] newControlPoint;
+    public int currControlPoint = 0;
+
     Lava lava;
 
     public override void HandleMessage(string flag, string value)
@@ -134,8 +137,6 @@ public class NetworkedGM : NetworkComponent
 
             }
 
-
-            int count = 0;
             while (true)
             {
 
@@ -156,10 +157,20 @@ public class NetworkedGM : NetworkComponent
 
     public void NextPhase()
     {
-        Debug.Log("?????");
+        Debug.Log("Activating Next Control Point");
         //Activate Next Checkpoint
-        //Move Lava
-        lava.canMove = true;
+        if (newControlPoint.Length >= currControlPoint)
+        {
+            MyCore.NetCreateObject(2, -1, newControlPoint[currControlPoint]);
+            currControlPoint++;
+            //Move Lava
+            lava.canMove = true;
+        }
+        else
+        {
+            Debug.Log("No More Control Points!");
+        }
+        
     }
     public void AdjustPoints(string team, int value)
     {
