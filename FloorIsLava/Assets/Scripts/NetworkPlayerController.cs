@@ -23,6 +23,7 @@ public class NetworkPlayerController : NetworkComponent
     public int MaxJumpNum;
     private int JumpNum;
     private bool JumpButtonDown;
+    public bool IsLaunched;
 
     private float mRotationX;
     private float mRotationY;
@@ -41,10 +42,23 @@ public class NetworkPlayerController : NetworkComponent
         {
             string[] args = value.Split(',');
             tempVelocity = (this.transform.forward * float.Parse(args[0]) + this.transform.right * float.Parse(args[1])).normalized * MoveSpeed + new Vector3(0, MyRig.velocity.y, 0);
-            gameObject.GetComponent<Rigidbody>().velocity = tempVelocity;
+            Vector3 temptemp = tempVelocity + MyRig.velocity;
+            if (!IsLaunched)
+            {
+                MyRig.velocity = tempVelocity;
+            }
+            else if(IsLaunched)
+            {
+                Debug.Log("barboLaunch");
+                MyRig.velocity = temptemp;
+            }
+            //if((temptemp.x > -MoveSpeed && temptemp.x<MoveSpeed) && (temptemp.y > -JumpHeight && temptemp.y<JumpHeight) && (temptemp.z > -MoveSpeed && temptemp.z<MoveSpeed))
+            //{
+            //    MyRig.velocity = temptemp;
+            //}
         }
 
-        if(flag == "ROTATE" && IsServer)
+        if (flag == "ROTATE" && IsServer)
         {
             string[] args = value.Split(',');      
             MyRig.transform.eulerAngles = new Vector3(0, float.Parse(args[0]), 0);
@@ -137,7 +151,11 @@ public class NetworkPlayerController : NetworkComponent
         }
     }
 
-    
+    public IEnumerator LaunchDelay()
+    {
+        yield return new WaitForSeconds(3);
+        IsLaunched = false;
+    }
 
     public override IEnumerator SlowUpdate()
     {
@@ -152,7 +170,7 @@ public class NetworkPlayerController : NetworkComponent
             AddWeapon(0);
         }
 
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(0.5f);
 
         if(IsLocalPlayer)
             SwitchWeapon(0);
@@ -180,6 +198,12 @@ public class NetworkPlayerController : NetworkComponent
             //IfClient...
             if(IsServer)
             {
+                if(IsLaunched)
+                {
+                    //if ((MyRig.velocity.x > -MoveSpeed && MyRig.velocity.x < MoveSpeed) && (MyRig.velocity.z > -MoveSpeed && MyRig.velocity.z < MoveSpeed))
+                    StartCoroutine(LaunchDelay());
+                }
+
                 if (IsDirty)
                 {
                     //Update non-movement varialbes
@@ -278,3 +302,5 @@ public class NetworkPlayerController : NetworkComponent
         }
     }
 }
+
+

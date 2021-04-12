@@ -866,7 +866,6 @@ MonoBehaviour:
   - {fileID: 3035509360632028996, guid: 2cc95246ba3093447a9db156d25c8990, type: 3}
   - {fileID: 604981466794796153, guid: 31d12ae500889b0438f671d4cbcfbc3b, type: 3}
   - {fileID: 76577849346128645, guid: e105ea83faf9fc34aaa93e77625e79e9, type: 3}
-  - {fileID: 3742694506912352786, guid: b3af1e1b8760e104d84bce9dcf5647cf, type: 3}
   MessageWaiting: 0
   MasterMessage: 
   NetworkPlayerManager: {fileID: 7704310234528940818, guid: b7c7d120205bd294e89824d50fade813,

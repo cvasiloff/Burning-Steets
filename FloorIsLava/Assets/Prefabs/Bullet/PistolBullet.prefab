@@ -141,7 +141,7 @@ MonoBehaviour:
   MyType: 4
   speed: 10
   ExplosionRadius: 5
-  ExplosionPower: 25
+  ExplosionPower: 200
 --- !u!54 &3285350188225662202
 Rigidbody:
   m_ObjectHideFlags: 0
