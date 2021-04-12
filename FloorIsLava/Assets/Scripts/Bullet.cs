@@ -36,13 +36,19 @@ public class Bullet : NetworkComponent
     {
         if(IsServer)
         {
-            Collider[] objects = UnityEngine.Physics.OverlapSphere(transform.position, ExplosionRadius);
+            Collider[] objects = Physics.OverlapSphere(transform.position, ExplosionRadius);
             foreach (Collider c in objects)
             {
-                Rigidbody r = c.GetComponent<Rigidbody>();
-                if (r != null)
+                if(c.tag == "Player")
                 {
-                    r.AddExplosionForce(ExplosionPower, transform.position, ExplosionRadius);
+                    Rigidbody r = c.GetComponent<Rigidbody>();
+                    if (r != null)
+                    {
+                        //r.AddExplosionForce(ExplosionPower, transform.position, ExplosionRadius);
+                        Vector3 temp = (r.transform.position - transform.position).normalized;
+                        r.velocity = temp * ExplosionPower;
+                    }
+                    break;
                 }
             }
             MyCore.NetDestroyObject(NetId);
