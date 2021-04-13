@@ -184,5 +184,8 @@ MonoBehaviour:
   MyCore: {fileID: 0}
   MyId: {fileID: 0}
   levels:
+  - 4
   - 8
+  - 12
+  canMove: 0
   myRig: {fileID: 0}
