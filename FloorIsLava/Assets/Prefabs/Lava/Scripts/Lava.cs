@@ -60,4 +60,33 @@ public class Lava : NetworkComponent
     {
         
     }
+
+    public void PlayerDeath(NetworkPlayerController player)
+    {
+        
+        
+        NetworkPlayer[] myPlayers = FindObjectsOfType<NetworkPlayer>();
+
+        foreach(NetworkPlayer p in myPlayers)
+        {
+            if(p.Owner == player.Owner)
+            {
+                Debug.Log(p.Owner + " and " + player.Owner);
+            }
+        }
+        MyCore.NetDestroyObject(player.NetId);
+        MyCore.NetCreateObject(player.Type, player.Owner, new Vector3(0, 0, 0));
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(IsServer)
+        {
+            if(other.GetComponent<NetworkPlayerController>() != null)
+            {
+                PlayerDeath(other.GetComponent<NetworkPlayerController>());
+                
+            }
+        }
+    }
 }

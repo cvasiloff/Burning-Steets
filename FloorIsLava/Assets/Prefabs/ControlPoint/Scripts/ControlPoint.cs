@@ -225,7 +225,7 @@ public class ControlPoint : NetworkComponent
     {
         //Set velocity of the flag to match the time it takes to capture
         //velocity = distance / time
-        flagSpeed = 3.5f / captureTime;
+        flagSpeed = 3.4f / captureTime;
     }
 
     // Update is called once per frame
