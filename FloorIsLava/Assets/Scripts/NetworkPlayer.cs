@@ -86,6 +86,20 @@ public class NetworkPlayer : NetworkComponent
             }
         }
 
+        if(flag == "REMOVEWEAPONS" && IsClient)
+        {
+            if(IsLocalPlayer)
+            {
+                if(Owner == int.Parse(value))
+                {
+                    foreach(Transform child in Camera.main.transform)
+                    {
+                        Destroy(child.gameObject);
+                    }
+                }
+            }
+        }
+
     }
 
     void SetPlayerReady(NetworkPlayer player)
@@ -137,6 +151,24 @@ public class NetworkPlayer : NetworkComponent
             }
             yield return new WaitForSeconds(MyCore.MasterTimer); //Master timer is 0.05f
         }
+    }
+
+    public void KillPlayer(NetworkPlayerController player)
+    {
+
+        SendUpdate("REMOVEWEAPONS",player.Owner.ToString());
+
+        //If object is destroyed in capture zone, flag will still be captured
+        MyCore.NetDestroyObject(player.NetId);
+        StartCoroutine(RespawnPlayer(5, player));
+
+        
+    }
+
+    public IEnumerator RespawnPlayer(float time, NetworkPlayerController player)
+    {
+        yield return new WaitForSeconds(time);
+        MyCore.NetCreateObject(player.Type, player.Owner, new Vector3(0, 0, 0));
     }
 
     public void SetButtonReady()
