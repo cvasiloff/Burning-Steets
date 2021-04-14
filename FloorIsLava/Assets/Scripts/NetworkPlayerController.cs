@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 public class NetworkPlayerController : NetworkComponent
 {
+    public GameObject Filler;
     public Weapon WepInHand;
     public int MaxWepCount;
     public GameObject WeaponParent;
@@ -42,15 +43,18 @@ public class NetworkPlayerController : NetworkComponent
         {
             string[] args = value.Split(',');
             tempVelocity = (this.transform.forward * float.Parse(args[0]) + this.transform.right * float.Parse(args[1])).normalized * MoveSpeed + new Vector3(0, MyRig.velocity.y, 0);
-            Vector3 temptemp = tempVelocity + MyRig.velocity;
             if (!IsLaunched)
             {
                 MyRig.velocity = tempVelocity;
             }
             else if(IsLaunched)
             {
-                Debug.Log("barboLaunch");
-                MyRig.velocity = temptemp;
+                
+                Vector3 temptemp = tempVelocity + MyRig.velocity;
+                if(temptemp.magnitude < MyRig.velocity.magnitude)
+                {
+                    MyRig.velocity = temptemp;
+                }
             }
             //if((temptemp.x > -MoveSpeed && temptemp.x<MoveSpeed) && (temptemp.y > -JumpHeight && temptemp.y<JumpHeight) && (temptemp.z > -MoveSpeed && temptemp.z<MoveSpeed))
             //{
@@ -103,7 +107,7 @@ public class NetworkPlayerController : NetworkComponent
             Debug.Log("Jumping!");
             if (IsServer)
             {
-                MyRig.velocity = new Vector3(MyRig.velocity.x, float.Parse(value) * JumpHeight , MyRig.velocity.z);
+                MyRig.velocity = new Vector3(MyRig.velocity.x, JumpHeight, MyRig.velocity.z);
             }
             JumpNum--;
         }
@@ -116,8 +120,11 @@ public class NetworkPlayerController : NetworkComponent
 
         if(flag == "SWITCHWEP")
         {
-            if(WepInHand != null)
+            Filler.transform.SetSiblingIndex(WeaponParent.transform.childCount-1);
+            if (WepInHand != null)
             {
+                WepInHand.transform.SetParent(WeaponParent.transform);
+                WepInHand.transform.SetSiblingIndex(WepInHand.ItemID);
                 WepInHand.gameObject.SetActive(false);
             }
             WepInHand = WeaponParent.transform.GetChild(int.Parse(value)).GetComponent<Weapon>();
@@ -128,6 +135,7 @@ public class NetworkPlayerController : NetworkComponent
             if (IsLocalPlayer)
             {
                 WepInHand.transform.SetParent(MyCam.transform);
+                Filler.transform.SetSiblingIndex(int.Parse(value));
             }
 
             if (IsServer)
@@ -193,6 +201,15 @@ public class NetworkPlayerController : NetworkComponent
                 {
                     WepInHand.TryFire();
                 }
+
+                if(Input.GetKey("1"))
+                {
+                    SwitchWeapon(0);
+                }
+                if (Input.GetKey("2"))
+                {
+                    SwitchWeapon(1);
+                }
             }
 
             //IfClient...
@@ -200,8 +217,11 @@ public class NetworkPlayerController : NetworkComponent
             {
                 if(IsLaunched)
                 {
-                    //if ((MyRig.velocity.x > -MoveSpeed && MyRig.velocity.x < MoveSpeed) && (MyRig.velocity.z > -MoveSpeed && MyRig.velocity.z < MoveSpeed))
-                    StartCoroutine(LaunchDelay());
+                    if ((MyRig.velocity.x > -MoveSpeed && MyRig.velocity.x < MoveSpeed) && (MyRig.velocity.z > -MoveSpeed && MyRig.velocity.z < MoveSpeed))
+                    {
+                        IsLaunched = false;
+                    }
+                    //StartCoroutine(LaunchDelay());
                 }
 
                 if (IsDirty)
@@ -227,7 +247,7 @@ public class NetworkPlayerController : NetworkComponent
 
     public void SwitchWeapon(int index)
     {
-        if(WepInHand == null || WepInHand.ItemID != index)
+        if((WepInHand == null || WepInHand.ItemID != index) && Weapons.Contains(index))
         {
             SendCommand("SWITCHWEP", index.ToString());
         }

@@ -44,13 +44,13 @@ public class Bullet : NetworkComponent
                     Rigidbody r = c.GetComponent<Rigidbody>();
                     if (r != null)
                     {
+                        Debug.Log((r.transform.position - transform.position).normalized * ExplosionPower);
                         r.gameObject.GetComponent<NetworkPlayerController>().IsLaunched = true;
-                        r.AddExplosionForce(ExplosionPower, transform.position, ExplosionRadius, 1.1f);
+                        r.velocity += ((r.transform.position - transform.position).normalized * ExplosionPower);
                         //Vector3 temp = (r.transform.position - transform.position).normalized;
                         
                        // r.velocity = temp * ExplosionPower;
                     }
-                    break;
                 }
             }
             MyCore.NetDestroyObject(NetId);
