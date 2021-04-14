@@ -8,6 +8,8 @@ public class NetworkedGM : NetworkComponent
 {
 
     bool GameReady = false;
+    bool GameEnd = false;
+
     public NetworkPlayer[] MyPlayers;
     GameObject[] Team1Spawn;
     GameObject[] Team2Spawn;
@@ -137,7 +139,7 @@ public class NetworkedGM : NetworkComponent
 
             }
 
-            while (true)
+            while (!GameEnd)
             {
 
                 
@@ -145,7 +147,8 @@ public class NetworkedGM : NetworkComponent
 
 
             }
-            Debug.Log("You have made it to the end!");
+
+            Debug.Log("The Game Is Over!");
             yield return new WaitForSeconds(20);
             MyCore.LeaveGame();
             //Wait for 25 seconds
@@ -157,18 +160,20 @@ public class NetworkedGM : NetworkComponent
 
     public void NextPhase()
     {
-        Debug.Log("Activating Next Control Point");
         //Activate Next Checkpoint
         if (newControlPoint.Length > currControlPoint)
         {
             MyCore.NetCreateObject(2, -1, newControlPoint[currControlPoint]);
             currControlPoint++;
-            //Move Lava
-            lava.canMove = true;
+            //Move Lava, but wait for x seconds
+            StartCoroutine(lava.LavaDelay(5));
         }
         else
         {
+            //Set end game to true
+            //Declare Winner
             Debug.Log("No More Control Points!");
+            GameEnd = true;
         }
         
     }
@@ -184,6 +189,7 @@ public class NetworkedGM : NetworkComponent
         }
         SendUpdate("SCORE", team + "," + value.ToString());
     }
+
 
     // Start is called before the first frame update
     void Start()

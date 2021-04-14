@@ -32,6 +32,11 @@ public class Lava : NetworkComponent
         }
     }
 
+    public IEnumerator LavaDelay(float time)
+    {
+        yield return new WaitForSeconds(time);
+        canMove = true;
+    }
     public void MoveLava()
     {
         if(myRig.position.y <= levels[currentLevel])
