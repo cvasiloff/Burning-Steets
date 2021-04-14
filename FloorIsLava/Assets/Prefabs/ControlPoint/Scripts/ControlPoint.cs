@@ -13,13 +13,14 @@ public class ControlPoint : NetworkComponent
     public float captureTime;
     public float captureTimer;
 
-    public float flagBase;
-    public float flagGoal;
+    public Vector3 flagVel;
+    private float flagSpeed;
 
     public Rigidbody myFlag;
 
     public override void HandleMessage(string flag, string value)
     {
+        //If Red Team is in range
         if(flag == "RED")
         {
             
@@ -30,6 +31,7 @@ public class ControlPoint : NetworkComponent
             }
         }
 
+        //If Green Team is in range
         if (flag == "GREEN")
         {
             captureGreen = bool.Parse(value);
@@ -39,39 +41,43 @@ public class ControlPoint : NetworkComponent
             }
         }
 
-        if(flag == "CAPTURE")
-        {
-            if(value == "RED")
-            {
-                //Call score for playermanager
-                Debug.Log("GIVE RED A POINT");
-            }
-            else
-            {
-                //Call score for playermanager
-                Debug.Log("GIVE GREEN A POINT");
-            }
-        }
-
+        //Color set to whoever has majority
         if(flag == "FLAGCOLOR")
         {
-            Debug.Log(value);
             if(value == "RED")
             {
-                Debug.Log("??");
                 myFlag.GetComponent<Renderer>().material.color = Color.red;
             }
             else
                 myFlag.GetComponent<Renderer>().material.color = Color.green;
         }
+
+        //Visual only, moves on client because of problems with child network objects
+        if(flag == "FLAGMOVE" && IsClient)
+        {
+            myFlag.velocity = VectorFromString(value);
+        }
+    }
+
+    public Vector3 VectorFromString(string value)
+    {
+        string[] temp = value.Trim('(', ')').Split(',');
+        Vector3 ParseVector = new Vector3();
+
+        for (int i = 0; i < 3; i++)
+        {
+            ParseVector[i] = float.Parse(temp[i]);
+        }
+
+        return ParseVector;
     }
 
     public override IEnumerator SlowUpdate()
     {
-        
-        while(true)
+        myFlag = this.transform.GetChild(2).GetComponent<Rigidbody>();
+        while (true)
         {
-            myFlag = GameObject.FindGameObjectWithTag("Flag").GetComponent<Rigidbody>();
+            
             if (IsServer)
             {
                 //Send update on flags capture progress
@@ -86,86 +92,140 @@ public class ControlPoint : NetworkComponent
                 {
                     yield return new WaitForSeconds(.1f);
                     MyCore.NetDestroyObject(this.NetId);
-                    MyCore.NetDestroyObject(myFlag.gameObject.GetComponent<NetworkComponent>().NetId);
                 }
                 
             }
+
             yield return new WaitForSeconds(MyCore.MasterTimer);
         }
     }
-
+    
+    
     public void CaptureTeam()
     {
-        if(!(captureRed && captureGreen))
+        //Speed flag will move up
+        Vector3 moveUp = new Vector3(0, flagSpeed, 0);
+
+        //Don't adjust time if both teams in range of flag
+        if (!(captureRed && captureGreen))
         {
-            
+            //Red is only in range, adjust time and flag
             if (captureRed)
             {
+                //Red has advantage
                 if(captureTimer > 0)
                 {
-                    myFlag.velocity = new Vector3(0, .25f, 0);
-                    SendUpdate("FLAGCOLOR", "RED");
-                    myFlag.GetComponent<Renderer>().material.color = Color.red;
+                    
+                    if(flagVel != moveUp)
+                    {
+                        flagVel = moveUp;
+                        SendUpdate("FLAGCOLOR", "RED");
+                        SendUpdate("FLAGMOVE", flagVel.ToString());
+                        //myFlag.GetComponent<Renderer>().material.color = Color.red;
+                    }  
                 }
+
+                //Green had the advantage
                 else
-                    myFlag.velocity = new Vector3(0, -.25f, 0);
-                captureDir = 1;
-            }
-            else if(captureGreen)
-            {
-                if (captureTimer < 0)
                 {
-                    myFlag.velocity = new Vector3(0, .25f, 0);
-                    SendUpdate("FLAGCOLOR", "GREEN");
-                    myFlag.GetComponent<Renderer>().material.color = Color.green;
+                    if (flagVel != moveUp * -1)
+                    {
+                        flagVel = moveUp * -1;
+                        SendUpdate("FLAGMOVE", flagVel.ToString());
+                    }
                 }
                     
-                else
-                    myFlag.velocity = new Vector3(0, -.25f, 0);
+                captureDir = 1;
+            }
 
+            //Green is only in range, adjust time and flag
+            else if(captureGreen)
+            {
+                //Green Has Advantage
+                if (captureTimer < 0)
+                {
+                    if (flagVel != moveUp)
+                    {
+                        flagVel = moveUp;
+                        SendUpdate("FLAGCOLOR", "GREEN");
+                        SendUpdate("FLAGMOVE", flagVel.ToString());
+                        //myFlag.GetComponent<Renderer>().material.color = Color.green;
+                    }
+                }
+                
+                //Red has advantage
+                else
+                {
+                    if (flagVel != moveUp * -1)
+                    {
+                        flagVel = moveUp * -1;
+                        SendUpdate("FLAGMOVE", flagVel.ToString());
+                    }
+                }
+                    
                 captureDir = -1;
             }
+
+            //Stop if none in range
             else
             {
-                myFlag.velocity = new Vector3(0, 0, 0);
-                captureDir = 0;
+                if (flagVel != Vector3.zero)
+                {
+                    flagVel = Vector3.zero;
+                    SendUpdate("FLAGMOVE", flagVel.ToString());
+                    captureDir = 0;
+                }
             }
         }
+        //Stop if both in range
         else if(captureRed && captureGreen)
         {
-            myFlag.velocity = new Vector3(0, 0f, 0);
-            captureDir = 0;
+            if (flagVel != Vector3.zero)
+            {
+                flagVel = Vector3.zero;
+                SendUpdate("FLAGMOVE", flagVel.ToString());
+                captureDir = 0;
+            }
         }    
     }
 
     public void CaptureTime()
     {
-        
-        if(Mathf.Abs(captureTimer) < 15)
+        //15 seconds is amount needed to capture from nothing
+        //Adjust time if hasn't reached it yet
+        if(Mathf.Abs(captureTimer) < captureTime)
         {
-            
             captureTimer = captureTimer + Time.deltaTime * captureDir;
         }
+
+        //Check which team captured the flag
         else
         {
+            NetworkedGM gm = GameObject.FindObjectOfType<NetworkedGM>();
             isCaptured = true;
-            if(captureTimer <= -15)
+            if(captureTimer <= -captureTime)
             {
-                SendUpdate("CAPTURE", "GREEN");
-                Debug.Log("GREEN CAPTURE");
+                gm.AdjustPoints("GREEN",1);
             }
-            if (captureTimer >= 15)
+            else if (captureTimer >= captureTime)
             {
-                SendUpdate("CAPTURE", "RED");
-                Debug.Log("RED CAPTURE");
+                gm.AdjustPoints("RED", 1);
             }
+
+            //Unlock next checkpoint
+            //Move Lava
+            //Adjust Plane
+            //Adjust spawn locations
+            gm.NextPhase();
+
         }
     }
 
-    // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
-
+        //Set velocity of the flag to match the time it takes to capture
+        //velocity = distance / time
+        flagSpeed = 3.5f / captureTime;
     }
 
     // Update is called once per frame
@@ -175,15 +235,18 @@ public class ControlPoint : NetworkComponent
             CaptureTime();
     }
 
+    //Check if team is in range
     private void OnTriggerStay(Collider collision)
     {
         if (IsServer)
         {
+            //Check if player is the one in range
             if (collision.gameObject.GetComponent<NetworkPlayerController>() != null)
             {
                 NetworkPlayerController inRange = collision.gameObject.GetComponent<NetworkPlayerController>();
                 NetworkPlayer[] myPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
 
+                //Find which player it is and adjust flag logic accordingly
                 foreach (NetworkPlayer x in myPlayers)
                 {
 
@@ -208,7 +271,7 @@ public class ControlPoint : NetworkComponent
         }
     }
 
-
+    //Check if team leaves
     private void OnTriggerExit(Collider collision)
     {
         if (IsServer)
@@ -217,7 +280,8 @@ public class ControlPoint : NetworkComponent
             {
                 NetworkPlayerController inRange = collision.gameObject.GetComponent<NetworkPlayerController>();
                 NetworkPlayer[] myPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
-                
+
+                //Find which player it is and adjust flag logic accordingly
                 foreach (NetworkPlayer x in myPlayers)
                 {
                     

@@ -11,8 +11,13 @@ public class NetworkedGM : NetworkComponent
     public NetworkPlayer[] MyPlayers;
     GameObject[] Team1Spawn;
     GameObject[] Team2Spawn;
-    public int scoreTeam1 = 0;
-    public int scoreTeam2 = 0;
+    public int scoreTeamRed = 0;
+    public int scoreTeamGreen = 0;
+
+    public Vector3[] newControlPoint;
+    public int currControlPoint = 0;
+
+    Lava lava;
 
     public override void HandleMessage(string flag, string value)
     {
@@ -22,7 +27,6 @@ public class NetworkedGM : NetworkComponent
             NetworkPlayer[] MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
             foreach (NetworkPlayer c in MyPlayers)
             {
-                Debug.Log("AAA");
                 c.transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
             }
             
@@ -41,6 +45,17 @@ public class NetworkedGM : NetworkComponent
             //Possibly disable the UI...
             //Disable ready/unready button
         }
+
+        if(flag == "SCORE" && IsClient)
+        {
+            string[] args = value.Split(',');
+
+            if (args[0] == "RED")
+                scoreTeamRed += int.Parse(args[1]);
+            else
+                scoreTeamGreen += int.Parse(args[1]);
+
+        }
             
 
 
@@ -48,8 +63,8 @@ public class NetworkedGM : NetworkComponent
 
     public override IEnumerator SlowUpdate()
     {
-
-        if(IsClient)
+        lava = GameObject.FindObjectOfType<Lava>();
+        if (IsClient)
         {
             GameObject.Find("NetworkManager").transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
         }
@@ -122,21 +137,12 @@ public class NetworkedGM : NetworkComponent
 
             }
 
-
-            int count = 0;
             while (true)
             {
-                
 
+                
                 yield return new WaitForSeconds(1f);
 
-                //While there is no winner
-                //  Pick a unique number
-                //  Send the unique number
-                //  Foreach BingoCard x in scene
-                //  x.NumberDrawn(unique number)
-                //  Check for winner
-                //  Wait 1 second
 
             }
             Debug.Log("You have made it to the end!");
@@ -147,6 +153,36 @@ public class NetworkedGM : NetworkComponent
             //MyCore.LeaveGame();
         }
 
+    }
+
+    public void NextPhase()
+    {
+        Debug.Log("Activating Next Control Point");
+        //Activate Next Checkpoint
+        if (newControlPoint.Length > currControlPoint)
+        {
+            MyCore.NetCreateObject(2, -1, newControlPoint[currControlPoint]);
+            currControlPoint++;
+            //Move Lava
+            lava.canMove = true;
+        }
+        else
+        {
+            Debug.Log("No More Control Points!");
+        }
+        
+    }
+    public void AdjustPoints(string team, int value)
+    {
+        if(team == "RED")
+        {
+            scoreTeamRed += value;
+        }
+        else
+        {
+            scoreTeamGreen += value;
+        }
+        SendUpdate("SCORE", team + "," + value.ToString());
     }
 
     // Start is called before the first frame update
