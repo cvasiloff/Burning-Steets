@@ -19,6 +19,8 @@ public class NetworkPlayerController : NetworkComponent
     public Rigidbody MyRig;
     public Vector3 tempVelocity;
     public Vector3 tempAngular;
+    public Vector3 PlayerRotation;
+    public Vector3 JumpVelocity;
     public int JumpHeight;
 
     public int MaxJumpNum;
@@ -45,28 +47,24 @@ public class NetworkPlayerController : NetworkComponent
             tempVelocity = (this.transform.forward * float.Parse(args[0]) + this.transform.right * float.Parse(args[1])).normalized * MoveSpeed + new Vector3(0, MyRig.velocity.y, 0);
             if (!IsLaunched)
             {
-                MyRig.velocity = tempVelocity;
+                //MyRig.velocity = tempVelocity;
             }
             else if(IsLaunched)
-            {
-                
+            {              
                 Vector3 temptemp = tempVelocity + MyRig.velocity;
                 if(temptemp.magnitude < MyRig.velocity.magnitude)
                 {
-                    MyRig.velocity = temptemp;
+                    //MyRig.velocity = temptemp;
+                    tempVelocity = temptemp;
                 }
             }
-            //if((temptemp.x > -MoveSpeed && temptemp.x<MoveSpeed) && (temptemp.y > -JumpHeight && temptemp.y<JumpHeight) && (temptemp.z > -MoveSpeed && temptemp.z<MoveSpeed))
-            //{
-            //    MyRig.velocity = temptemp;
-            //}
         }
 
         if (flag == "ROTATE" && IsServer)
         {
             string[] args = value.Split(',');      
-            MyRig.transform.eulerAngles = new Vector3(0, float.Parse(args[0]), 0);
-            
+            //MyRig.transform.eulerAngles = new Vector3(0, float.Parse(args[0]), 0); 
+            PlayerRotation = new Vector3(0, float.Parse(args[0]), 0);
         }
 
         if (flag == "PNAME")
@@ -108,6 +106,7 @@ public class NetworkPlayerController : NetworkComponent
             if (IsServer)
             {
                 MyRig.velocity = new Vector3(MyRig.velocity.x, JumpHeight, MyRig.velocity.z);
+                //JumpVelocity = new Vector3(MyRig.velocity.x, JumpHeight, MyRig.velocity.z);
             }
             JumpNum--;
         }
@@ -178,6 +177,11 @@ public class NetworkPlayerController : NetworkComponent
             AddWeapon(0);
         }
 
+        if(IsClient)
+        {
+            MyRig.useGravity = false;
+        }
+
         yield return new WaitForSeconds(0.5f);
 
         if(IsLocalPlayer)
@@ -223,6 +227,9 @@ public class NetworkPlayerController : NetworkComponent
                     }
                     //StartCoroutine(LaunchDelay());
                 }
+
+                MyRig.velocity = tempVelocity;
+                MyRig.transform.eulerAngles = PlayerRotation;
 
                 if (IsDirty)
                 {
