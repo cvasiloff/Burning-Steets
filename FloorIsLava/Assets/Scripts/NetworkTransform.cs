@@ -10,7 +10,7 @@ public class NetworkTransform : NetworkComponent
 
     public float Threshold = 0.5f;
 
-    public float EThreshold = 5f;
+    public float EThreshold = 2.5f;
 
     public NetworkID MyNetId;
 
