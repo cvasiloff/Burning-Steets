@@ -16,9 +16,7 @@ public class NetworkPlayer : NetworkComponent
     public bool canStart = false;
 
     public string Team = "";
-
-
-    public int playerCount = 0;
+    NetworkedGM gm;
 
 
     public override void HandleMessage(string flag, string value)
@@ -221,7 +219,26 @@ public class NetworkPlayer : NetworkComponent
     public IEnumerator RespawnPlayer(float time, NetworkPlayerController player)
     {
         yield return new WaitForSeconds(time);
-        MyCore.NetCreateObject(player.Type, player.Owner, new Vector3(0, 0, 0));
+        NetworkPlayer[] MyPlayers = FindObjectsOfType<NetworkPlayer>();
+        foreach (NetworkPlayer p in MyPlayers)
+        {
+            if(p.Owner == player.Owner)
+            {
+                if(p.Team == "RED")
+                {
+                    Debug.Log(gm.TeamRedSpawn[0].transform.GetChild(0).transform.position);
+                    MyCore.NetCreateObject(player.Type, player.Owner, 
+                        gm.TeamRedSpawn[gm.currControlPoint].transform.GetChild(p.Owner%7).transform.position, 
+                        gm.TeamRedSpawn[gm.currControlPoint].transform.GetChild(p.Owner % 7).transform.rotation);
+                    
+                }
+                else if(p.Team == "GREEN")
+                {
+                    MyCore.NetCreateObject(player.Type, player.Owner, gm.TeamGreenSpawn[gm.currControlPoint].transform.GetChild(0).transform.position);
+                }
+                break;
+            }
+        }
     }
 
     public void SetButtonReady()
@@ -263,7 +280,7 @@ public class NetworkPlayer : NetworkComponent
     // Start is called before the first frame update
     void Start()
     {
-
+        gm = FindObjectOfType<NetworkedGM>();
     }
 
     // Update is called once per frame

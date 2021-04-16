@@ -11,8 +11,8 @@ public class NetworkedGM : NetworkComponent
     bool GameEnd = false;
 
     public NetworkPlayer[] MyPlayers;
-    GameObject[] Team1Spawn;
-    GameObject[] Team2Spawn;
+    public GameObject[] TeamRedSpawn;
+    public GameObject[] TeamGreenSpawn;
     public int scoreTeamRed = 0;
     public int scoreTeamGreen = 0;
 
@@ -87,7 +87,7 @@ public class NetworkedGM : NetworkComponent
                 bool testReady = true;
                 
                 MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
-                if(MyPlayers.Length > 2)
+                if(MyPlayers.Length > 1)
                 {
                     foreach (NetworkPlayer c in MyPlayers)
                     {
@@ -119,14 +119,27 @@ public class NetworkedGM : NetworkComponent
             //Spawn the objects
 
             MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
+            NetworkPlayerController[] MyControllers = GameObject.FindObjectsOfType<NetworkPlayerController>();
+
+            int i = 0;
+            int j = 0;
             foreach (NetworkPlayer c in MyPlayers)
             {
-                Debug.Log("SEND TO SPAWN");
+                foreach(NetworkPlayerController p in MyControllers)
+                {
+                    if(c.Owner == p.Owner)
+                    {
+                        c.KillPlayer(p);
+                        break;
+                    }
+                    
+                }
+                
                 //Spawning when player connects
                 //GameObject temp = MyCore.NetCreateObject(c.ModelNum+1, c.Owner, new Vector3(-18 + ((c.Owner * 3)), 88, -112));
 
                 //Send them to the correct spawn locations
-                yield return new WaitForSeconds(.1f);
+                
 
                 //temp.GetComponent<NetworkPlayerController>().SendUpdate("COLOR", c.ColorType);
                 //temp.GetComponent<NetworkPlayerController>().SendUpdate("PNAME", c.PNAME);
@@ -135,6 +148,7 @@ public class NetworkedGM : NetworkComponent
                 //temp.GetComponent<NetworkPlayer>().SendUpdate("SETHP", "100");
 
             }
+
 
             while (!GameEnd)
             {
