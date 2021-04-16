@@ -13,7 +13,9 @@ public class NetworkPlayer : NetworkComponent
     public int ModelNum;
 
     public bool isReady = false;
-    public string Team = "RED";
+    public bool canStart = false;
+
+    public string Team = "";
 
 
     public int playerCount = 0;
@@ -72,6 +74,7 @@ public class NetworkPlayer : NetworkComponent
         if (flag == "SETTEAM")
         {
             SetPlayerTeam(this, value);
+            SetPlayerStart();
             if (IsServer)
             {
                 SendUpdate("SETTEAM", value);
@@ -107,15 +110,25 @@ public class NetworkPlayer : NetworkComponent
         isReady = true;
     }
 
+    void SetPlayerStart()
+    {
+        canStart = true;
+    }
+
     void SetPlayerTeam(NetworkPlayer player, string team)
     {
         Team = team;
     }
 
+    void SetTeam()
+    {
+
+    }
+
     public override IEnumerator SlowUpdate()
     {
      
-        if (IsLocalPlayer)
+        if (IsClient && IsLocalPlayer)
         {
             GameObject.Find("NetworkManager").transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
 
@@ -129,6 +142,46 @@ public class NetworkPlayer : NetworkComponent
                 }
             }
         }
+
+        while (!isReady)
+        {
+            if(IsServer)
+            {
+                if (IsDirty)
+                {
+                    //Update non-movement varialbes
+                    SendUpdate("PNAME", PNAME);
+                    SendUpdate("READY", isReady.ToString());
+                    SendUpdate("COLOR", ColorType);
+                    SendUpdate("MODEL", ModelNum.ToString());
+                    SendUpdate("TEAM", Team);
+                    IsDirty = false;
+                }
+            }
+            yield return new WaitForSeconds(MyCore.MasterTimer);
+        }
+
+        if (IsServer)
+        {
+            
+            MyCore.NetCreateObject(ModelNum + 1, Owner, new Vector3(-18 + ((Owner * 3)), 88, -112));
+            SendUpdate("PNAME", PNAME);
+        }
+
+        if(IsClient && IsLocalPlayer)
+        {
+            NetworkPlayer[] MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
+
+            foreach (NetworkPlayer x in MyPlayers)
+            {
+                if (x.NetId == this.NetId)
+                {
+                    x.transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
+                }
+            }
+        }
+
+
 
 
 

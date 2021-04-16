@@ -26,11 +26,11 @@ public class NetworkedGM : NetworkComponent
         if(flag == "GAMESTART" && IsClient)
         {
             GameReady = true;
-            NetworkPlayer[] MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
-            foreach (NetworkPlayer c in MyPlayers)
-            {
-                c.transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
-            }
+            //NetworkPlayer[] MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
+            //foreach (NetworkPlayer c in MyPlayers)
+            //{
+            //    c.transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
+            //}
             
 
             //For each Network Player x in scene
@@ -87,17 +87,18 @@ public class NetworkedGM : NetworkComponent
                 bool testReady = true;
                 
                 MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
-                if(MyPlayers.Length > 0)
+                if(MyPlayers.Length > 2)
                 {
                     foreach (NetworkPlayer c in MyPlayers)
                     {
-                        if(!c.isReady)
+                        if(!c.canStart)
                         {
                             testReady = false;
                             break;
                         }
                     }
 
+                    //If testready and countdown timer is done
                     if(testReady)
                     {
                         GameReady = true;
@@ -112,23 +113,19 @@ public class NetworkedGM : NetworkComponent
             }
             SendUpdate("GAMESTART", "1");
 
+
+
             //Tell the clients to activate a temporary splash screen on the Network Manager canvas.
             //Spawn the objects
 
             MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
             foreach (NetworkPlayer c in MyPlayers)
             {
-                //c. should provide me with all the player options.
-                
+                Debug.Log("SEND TO SPAWN");
+                //Spawning when player connects
+                //GameObject temp = MyCore.NetCreateObject(c.ModelNum+1, c.Owner, new Vector3(-18 + ((c.Owner * 3)), 88, -112));
 
-                GameObject temp = MyCore.NetCreateObject(c.ModelNum+1, c.Owner, new Vector3(-5 + ((c.Owner * 3)), c.transform.position.y, c.transform.position.z));
-                //This is bad...
-                    //Modify the mesh for temp to be the correct character
-                    //Dynamically add the right animator
-                    //Dynamically add the right control script
-                    //Above is all bad, use multiple prefabs.
-
-                //Dynamically set color on renderer for team...
+                //Send them to the correct spawn locations
                 yield return new WaitForSeconds(.1f);
 
                 //temp.GetComponent<NetworkPlayerController>().SendUpdate("COLOR", c.ColorType);

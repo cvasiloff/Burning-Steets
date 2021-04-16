@@ -300,26 +300,34 @@ public class NetworkPlayerController : NetworkComponent
 
     private void OnCollisionEnter(Collision collision)
     {
+        
+        //Put an IsServer check here
         if(collision.gameObject.tag == "Floor")
         {
             JumpNum = MaxJumpNum;
         }
 
-        if(collision.gameObject.tag == "Lobby")
+        //Give the server authority and change teams when it hits the Lobby Team
+        if(IsServer)
         {
-            string temp = collision.gameObject.name;
-            if(IsClient)
+            if (collision.gameObject.tag == "Lobby")
             {
+                string temp = collision.gameObject.name;
+
                 NetworkPlayer[] playersInScene = GameObject.FindObjectsOfType<NetworkPlayer>();
                 foreach (NetworkPlayer p in playersInScene)
                 {
                     if (p.Owner == this.Owner)
                     {
-                        p.SendCommand("SETTEAM", temp);
+                        p.Team = temp;
+                        p.canStart = true;
+                        p.SendUpdate("TEAM", temp);
                     }
                 }
+                
             }
         }
+        
     }
 }
 
