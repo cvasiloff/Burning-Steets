@@ -128,7 +128,7 @@ public class NetworkPlayer : NetworkComponent
      
         if (IsClient && IsLocalPlayer)
         {
-            GameObject.Find("NetworkManager").transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
+            GameObject.Find("WANNetworkManager").transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
 
             NetworkPlayer[] MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
 

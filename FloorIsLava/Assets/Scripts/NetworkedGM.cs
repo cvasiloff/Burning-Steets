@@ -68,7 +68,7 @@ public class NetworkedGM : NetworkComponent
         lava = GameObject.FindObjectOfType<Lava>();
         if (IsClient)
         {
-            GameObject.Find("NetworkManager").transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
+            GameObject.Find("WANNetworkManager").transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
         }
 
         while(!GameReady && IsClient)
@@ -161,7 +161,7 @@ public class NetworkedGM : NetworkComponent
 
             Debug.Log("The Game Is Over!");
             yield return new WaitForSeconds(20);
-            MyCore.LeaveGame();
+            //MyCore.LeaveGame();
             //Wait for 25 seconds
             //Leave Game.
             //MyCore.LeaveGame();

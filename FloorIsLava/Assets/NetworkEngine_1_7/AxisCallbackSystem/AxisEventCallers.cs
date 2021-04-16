@@ -4,11 +4,6 @@ using UnityEngine;
 using System;
 public class AxisEventCallers : MonoBehaviour
 {
-
-    float LastHorizontal = 0;
-    float LastVertical = 0;
-    float LastFire = 0;
-    float LastJump = 0;
     public static Dictionary<string, AxisEventSystem> InputEvents;
     public static Dictionary<string, float> LastInput;
     public string[] WatchedAxis;
