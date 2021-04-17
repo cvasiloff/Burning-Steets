@@ -134,7 +134,7 @@ public class NetworkPlayerController : NetworkComponent
 
             if (IsLocalPlayer)
             {
-                WepInHand.transform.SetParent(MyCam.transform);
+                WepInHand.transform.SetParent(MyCam.transform.GetChild(0));
                 Filler.transform.SetSiblingIndex(int.Parse(value));
             }
 
@@ -260,6 +260,14 @@ public class NetworkPlayerController : NetworkComponent
         MyRig = GetComponent<Rigidbody>();
         MyCam = Camera.main;
         JumpNum = MaxJumpNum;
+
+        for (int i = 0; i < WeaponParent.transform.childCount; i++)
+        {
+            if (WeaponParent.transform.GetChild(i).GetComponent<Weapon>() != null)
+            {
+                WeaponParent.transform.GetChild(i).GetComponent<Weapon>().MyPos = WeaponParent.transform.GetChild(i).transform.localPosition;
+            }
+        }
     }
 
 

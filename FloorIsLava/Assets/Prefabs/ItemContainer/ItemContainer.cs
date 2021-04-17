@@ -21,7 +21,10 @@ public class ItemContainer : NetworkComponent
     {
         while(true)
         {
-            MyRig.angularVelocity = new Vector3(0, 10, 0);
+            if(IsAvalible)
+            {
+                MyRig.angularVelocity = new Vector3(0, 10, 0);
+            }
             yield return new WaitForSeconds(MyCore.MasterTimer);
         }       
     }
@@ -49,6 +52,7 @@ public class ItemContainer : NetworkComponent
             {
                 collision.gameObject.GetComponent<NetworkPlayerController>().AddWeapon(ContainedItem.GetComponent<Weapon>().ItemID);
             }
+            MyRig.gameObject.SetActive(false);
         }
     }
 }

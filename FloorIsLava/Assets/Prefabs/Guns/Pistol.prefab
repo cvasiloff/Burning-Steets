@@ -93,6 +93,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MyController: {fileID: 0}
   BulletSpawn: {fileID: 5232489689171595208}
+  MyPos: {x: 0, y: 0, z: 0}
+  MyRot: {x: 0, y: 0, z: 0}
   MaxAmmo: 10000000
   CurrentAmmo: 0
   IsInInventory: 0
@@ -126,7 +128,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5426371692886403144}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.001234, y: 0.000264, z: -0}
+  m_LocalPosition: {x: -0.000037, y: 0.000264, z: -0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 408667632406362113}

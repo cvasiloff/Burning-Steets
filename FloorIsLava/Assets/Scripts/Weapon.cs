@@ -30,14 +30,16 @@ public class Weapon : MonoBehaviour
     void Start()
     {
         //MyController = transform.root.gameObject.GetComponent<NetworkPlayerController>();
-        MyPos = this.transform.localPosition;
+        //MyPos = this.transform.localPosition;
     }
 
     // Update is called once per frame
     void Update()
     {
         this.transform.localPosition = MyPos;
+
         //this.transform.rotation = transform.parent.rotation * Quaternion.Euler(0f,90f,0f);
+
         this.transform.rotation = Quaternion.Lerp(this.transform.rotation, transform.parent.rotation * Quaternion.Euler(0f, 90f, 0f), 0.2f);
     }
 

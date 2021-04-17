@@ -9,15 +9,29 @@ public class Bullet : NetworkComponent
     public float speed;
     public float ExplosionRadius;
     public float ExplosionPower;
+    public ParticleSystem ExplosionEffect;
+    public ParticleSystem TrailEffect;
 
     public override void HandleMessage(string flag, string value)
     {
-        
+        if(flag == "EXPLO")
+        {
+            GetComponent<MeshRenderer>().enabled = false;
+            TrailEffect.Stop();
+            ExplosionEffect.Play();
+        }
+    }
+
+    public IEnumerator Despawn()
+    {
+        yield return new WaitForSeconds(2);
+        MyCore.NetDestroyObject(NetId);
     }
 
     public override IEnumerator SlowUpdate()
     {
-        yield return new WaitForSeconds(MyCore.MasterTimer);
+        TrailEffect.shape.rotation.Set(transform.forward.x , transform.forward.y + 180, transform.forward.z);
+        yield return new WaitForSeconds(MyCore.MasterTimer);   
     }
 
     // Start is called before the first frame update
@@ -44,16 +58,17 @@ public class Bullet : NetworkComponent
                     Rigidbody r = c.GetComponent<Rigidbody>();
                     if (r != null)
                     {
-                        Debug.Log((r.transform.position - transform.position).normalized * ExplosionPower);
+                        //Debug.Log((r.transform.position - transform.position).normalized * ExplosionPower);
                         r.gameObject.GetComponent<NetworkPlayerController>().IsLaunched = true;
                         r.velocity += ((r.transform.position - transform.position).normalized * ExplosionPower);
-                        //Vector3 temp = (r.transform.position - transform.position).normalized;
                         
-                       // r.velocity = temp * ExplosionPower;
                     }
                 }
             }
-            MyCore.NetDestroyObject(NetId);
+            SendUpdate("EXPLO", "1");
+            StartCoroutine(Despawn());
+            Debug.Log(other.name);
+            GetComponent<Rigidbody>().velocity = Vector3.zero;
         }
     }
 }
