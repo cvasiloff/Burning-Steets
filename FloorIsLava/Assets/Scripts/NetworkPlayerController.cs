@@ -185,7 +185,7 @@ public class NetworkPlayerController : NetworkComponent
 
         while (true)
         {
-            if(IsLocalPlayer)
+            if(IsLocalPlayer && IsClient)
             {
                 SendCommand("MOVE", Input.GetAxisRaw("Vertical").ToString() + ',' + Input.GetAxisRaw("Horizontal").ToString());
                 SendCommand("ROTATE", cameraX.ToString() + ',' + cameraY.ToString());
@@ -265,7 +265,7 @@ public class NetworkPlayerController : NetworkComponent
     // Update is called once per frame
     void Update()
     {
-        if (IsLocalPlayer)
+        if (IsLocalPlayer && IsClient)
         {
             mRotationX = Input.GetAxisRaw("Mouse X") * sensitivity;
 
@@ -294,7 +294,7 @@ public class NetworkPlayerController : NetworkComponent
 
     private void LateUpdate()
     {
-        if(IsLocalPlayer)
+        if(IsLocalPlayer && IsClient)
             MyCam.transform.position = Vector3.Lerp(MyCam.transform.position, CameraPos.position, 0.2f);
     }
 

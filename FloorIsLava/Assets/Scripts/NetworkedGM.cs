@@ -68,7 +68,7 @@ public class NetworkedGM : NetworkComponent
         lava = GameObject.FindObjectOfType<Lava>();
         if (IsClient)
         {
-            GameObject.Find("WANNetworkManager").transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
+            GameObject.FindGameObjectWithTag("NetworkManager").transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
         }
 
         while(!GameReady && IsClient)
