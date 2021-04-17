@@ -171,6 +171,7 @@ public class NetworkPlayerController : NetworkComponent
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
+            this.GetComponent<MeshRenderer>().enabled = false;
         }
 
         if(IsServer)
