@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+///This code was written by Dr. Bradford A. Towle Jr.
+///And is intended for educational use only.
+///4/11/2021
+
 namespace NETWORK_ENGINE
 {
     public class NetworkID : MonoBehaviour
@@ -15,12 +19,15 @@ namespace NETWORK_ENGINE
         public bool IsClient;
         public float UpdateFrequency = .1f;
         public NetworkCore MyCore;
-        public string GameObjectMessages = "";
+        public ExclusiveString GameObjectMessages = new ExclusiveString();
+        public ExclusiveString UDPGameObjectMessages = new ExclusiveString();
         public object _lock = new object();
 
         // Use this for initialization
         void Start()
         {
+            //UDPGameObjectMessages = new ExclusiveString();
+            //GameObjectMessages = new ExclusiveString(); 
             MyCore = GameObject.FindObjectOfType<NetworkCore>();
             if(MyCore == null)
             {
@@ -28,10 +35,13 @@ namespace NETWORK_ENGINE
             }
             IsServer = MyCore.IsServer;
             IsClient = MyCore.IsClient;
+    
             StartCoroutine(SlowStart());
+
         }
         IEnumerator SlowStart()
-        {
+        {      
+
             if (!IsServer && !IsClient)
             {
                 //This will ONLY be true if the object was in the scene before the connection
@@ -69,13 +79,10 @@ namespace NETWORK_ENGINE
                 }
                 else
                 {
-                    lock (MyCore._objLock)
-                    {
-                        NetId = MyCore.ObjectCounter;
-                        MyCore.ObjectCounter++;
-                        Owner = -1;
-                        MyCore.NetObjs.Add(NetId, this);
-                    }
+                    NetId = MyCore.ObjectCounter;
+                    MyCore.ObjectCounter++;
+                    Owner = -1;
+                    MyCore.NetObjs.Add(NetId, this);
                 }
             }
 
@@ -94,19 +101,16 @@ namespace NETWORK_ENGINE
                 NotifyDirty();
             }
         }
-        public void AddMsg(string msg)
-        {
-            //Debug.Log("Message WAS: " + gameObjectMessages);
-            //May need to put race condition blocks here.
-            lock (_lock)
+        public void AddMsg(string msg,bool useTcp=true)
+        {        
+            if (useTcp)
             {
                 GameObjectMessages += (msg + "\n");
-                lock (MyCore._waitingLock)
-                {
-                    MyCore.MessageWaiting = true;
-                }
             }
-            //Debug.Log("Message IS NOW: " + gameObjectMessages);
+            else
+            {
+                UDPGameObjectMessages += (msg + "\n");
+            }    
         }
 
 

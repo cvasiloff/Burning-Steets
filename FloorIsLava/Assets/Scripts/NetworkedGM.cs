@@ -8,9 +8,11 @@ public class NetworkedGM : NetworkComponent
 {
 
     bool GameReady = false;
+    bool GameEnd = false;
+
     public NetworkPlayer[] MyPlayers;
-    GameObject[] Team1Spawn;
-    GameObject[] Team2Spawn;
+    public GameObject[] TeamRedSpawn;
+    public GameObject[] TeamGreenSpawn;
     public int scoreTeamRed = 0;
     public int scoreTeamGreen = 0;
 
@@ -24,11 +26,11 @@ public class NetworkedGM : NetworkComponent
         if(flag == "GAMESTART" && IsClient)
         {
             GameReady = true;
-            NetworkPlayer[] MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
-            foreach (NetworkPlayer c in MyPlayers)
-            {
-                c.transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
-            }
+            //NetworkPlayer[] MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
+            //foreach (NetworkPlayer c in MyPlayers)
+            //{
+            //    c.transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
+            //}
             
 
             //For each Network Player x in scene
@@ -66,7 +68,7 @@ public class NetworkedGM : NetworkComponent
         lava = GameObject.FindObjectOfType<Lava>();
         if (IsClient)
         {
-            GameObject.Find("NetworkManager").transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
+            GameObject.FindGameObjectWithTag("NetworkManager").transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
         }
 
         while(!GameReady && IsClient)
@@ -85,17 +87,18 @@ public class NetworkedGM : NetworkComponent
                 bool testReady = true;
                 
                 MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
-                if(MyPlayers.Length > 0)
+                if(MyPlayers.Length > 1)
                 {
                     foreach (NetworkPlayer c in MyPlayers)
                     {
-                        if(!c.isReady)
+                        if(!c.canStart)
                         {
                             testReady = false;
                             break;
                         }
                     }
 
+                    //If testready and countdown timer is done
                     if(testReady)
                     {
                         GameReady = true;
@@ -110,24 +113,33 @@ public class NetworkedGM : NetworkComponent
             }
             SendUpdate("GAMESTART", "1");
 
+
+
             //Tell the clients to activate a temporary splash screen on the Network Manager canvas.
             //Spawn the objects
 
             MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
+            NetworkPlayerController[] MyControllers = GameObject.FindObjectsOfType<NetworkPlayerController>();
+
+            int i = 0;
+            int j = 0;
             foreach (NetworkPlayer c in MyPlayers)
             {
-                //c. should provide me with all the player options.
+                foreach(NetworkPlayerController p in MyControllers)
+                {
+                    if(c.Owner == p.Owner)
+                    {
+                        c.KillPlayer(p);
+                        break;
+                    }
+                    
+                }
                 
+                //Spawning when player connects
+                //GameObject temp = MyCore.NetCreateObject(c.ModelNum+1, c.Owner, new Vector3(-18 + ((c.Owner * 3)), 88, -112));
 
-                GameObject temp = MyCore.NetCreateObject(c.ModelNum+1, c.Owner, new Vector3(-5 + ((c.Owner * 3)), c.transform.position.y, c.transform.position.z));
-                //This is bad...
-                    //Modify the mesh for temp to be the correct character
-                    //Dynamically add the right animator
-                    //Dynamically add the right control script
-                    //Above is all bad, use multiple prefabs.
-
-                //Dynamically set color on renderer for team...
-                yield return new WaitForSeconds(.1f);
+                //Send them to the correct spawn locations
+                
 
                 //temp.GetComponent<NetworkPlayerController>().SendUpdate("COLOR", c.ColorType);
                 //temp.GetComponent<NetworkPlayerController>().SendUpdate("PNAME", c.PNAME);
@@ -137,7 +149,8 @@ public class NetworkedGM : NetworkComponent
 
             }
 
-            while (true)
+
+            while (!GameEnd)
             {
 
                 
@@ -145,9 +158,10 @@ public class NetworkedGM : NetworkComponent
 
 
             }
-            Debug.Log("You have made it to the end!");
+
+            Debug.Log("The Game Is Over!");
             yield return new WaitForSeconds(20);
-            MyCore.LeaveGame();
+            //MyCore.LeaveGame();
             //Wait for 25 seconds
             //Leave Game.
             //MyCore.LeaveGame();
@@ -157,18 +171,20 @@ public class NetworkedGM : NetworkComponent
 
     public void NextPhase()
     {
-        Debug.Log("Activating Next Control Point");
         //Activate Next Checkpoint
         if (newControlPoint.Length > currControlPoint)
         {
             MyCore.NetCreateObject(2, -1, newControlPoint[currControlPoint]);
             currControlPoint++;
-            //Move Lava
-            lava.canMove = true;
+            //Move Lava, but wait for x seconds
+            StartCoroutine(lava.LavaDelay(5));
         }
         else
         {
+            //Set end game to true
+            //Declare Winner
             Debug.Log("No More Control Points!");
+            GameEnd = true;
         }
         
     }
@@ -184,6 +200,7 @@ public class NetworkedGM : NetworkComponent
         }
         SendUpdate("SCORE", team + "," + value.ToString());
     }
+
 
     // Start is called before the first frame update
     void Start()

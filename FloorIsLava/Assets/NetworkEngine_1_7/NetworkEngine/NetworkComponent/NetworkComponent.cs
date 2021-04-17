@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+///This code was written by Dr. Bradford A. Towle Jr.
+///And is intended for educational use only.
+///4/11/2021
+
 namespace NETWORK_ENGINE
 {
     [RequireComponent(typeof(NetworkID))]
@@ -35,7 +39,6 @@ namespace NETWORK_ENGINE
         {
          
         }
-
         IEnumerator SlowStart()
         {
             yield return new WaitUntil(() => MyId.IsInit);
@@ -47,32 +50,30 @@ namespace NETWORK_ENGINE
             NetId = MyId.NetId;
             StartCoroutine(SlowUpdate());
         }
-
         public abstract IEnumerator SlowUpdate();
         public abstract void HandleMessage(string flag, string value);
-
-        public void SendCommand(string var, string value)
+        public void SendCommand(string var, string value, bool useTcp = true)
         {
             var = var.Replace('#', ' ');
             var = var.Replace('\n', ' ');
             value = value.Replace('#', ' ');
             value = value.Replace('\n', ' ');
-            if (MyCore != null && MyCore.IsClient && IsLocalPlayer && MyId.GameObjectMessages.Contains(var) == false)
+            if (MyCore != null && MyCore.IsClient && IsLocalPlayer && MyId.GameObjectMessages.Str.Contains(var) == false)
             {
                 string msg = "COMMAND#" + MyId.NetId + "#" + var + "#" + value;
-                MyId.AddMsg(msg);
+                MyId.AddMsg(msg, useTcp);
             }
         }
-        public void SendUpdate(string var, string value)
+        public void SendUpdate(string var, string value, bool useTcp = true)
         {
             var = var.Replace('#', ' ');
             var = var.Replace('\n', ' ');
             value = value.Replace('#', ' ');
             value = value.Replace('\n', ' ');
-            if (MyCore != null && MyCore.IsServer && MyId.GameObjectMessages.Contains(var)==false)
+            if (MyCore != null && MyCore.IsServer && MyId.GameObjectMessages.Str.Contains(var)==false)
             {
                 string msg = "UPDATE#" + MyId.NetId + "#" + var + "#" + value;
-                MyId.AddMsg(msg);
+                MyId.AddMsg(msg, useTcp);
             }
         }
     }

@@ -1,463 +1,311 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Net.WebSockets;
-using System;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using NETWORK_ENGINE;
 
-namespace NETWORK_ENGINE
+///This code was written by Dr. Bradford A. Towle Jr.
+///And is intended for educational use only.
+///4/11/2021
+
+public class NetworkCore : GenericNetworkCore
 {
-    public class NetworkCore : MonoBehaviour
-    {   
-        public string IpAddress;
-        public int Port;
-        public bool IsConnected = false;
-        public bool IsServer = false;
-        public bool IsClient = false;
-        public bool CanJoin = true;
-        public int MaxConnections = 100;
-        public int LocalPlayerId = -1;
-        public bool CurrentlyConnecting = false;
-        public Socket TCP_Listener;
-        public Dictionary<int, NetworkConnection> Connections;
-        public Dictionary<int, NetworkID> NetObjs;
-        public float MasterTimer = .05f;
-
-        //Game Object variables
-        public int ObjectCounter = 0;
-        public int ConCounter = 0;
-        public GameObject[] SpawnPrefab;
-
-          
-        //WE are going to push a variable to notify the master an ID has a message.
-        public bool MessageWaiting = false;
-        Coroutine ListeningThread;
-        public string MasterMessage;
-        public GameObject NetworkPlayerManager;//This will be the first thing that is spawned!
-
-        //Locks
-        public object _conLock = new object();
-        public object _objLock = new object();
-        public object _masterMessage = new object();
-        public object _waitingLock = new object();
-        public DateTime StartConnection;
+    //Object variables
+    public ExclusiveDictionary<int, NetworkID> NetObjs = new ExclusiveDictionary<int, NetworkID>();
+    public int ObjectCounter = 0;
+    public GameObject[] SpawnPrefab;
+    public GameObject NetworkPlayerManager;
 
 
+    //Connections variables outside of generic network Core
+    public int MaxConnections = 100;
+    public int LocalPlayerId
+    {
+        get { return LocalConnectionID; }
+    }
 
-        // Use this for initialization
-        void Start()
+    //Control Variables
+    public float MasterTimer = .05f;
+    public ExclusiveString MasterMessage;
+    public ExclusiveString UDPMasterMessage;
+    public int ConCounter
+    {
+        get { return NetSystem.ConCounter; }
+    }
+    public int DefaultReturnScene = 0;
+
+    /// <summary>
+    /// Initializes the Network Core variables.
+    /// </summary>
+    void Start()
+    {
+        UDPMasterMessage = new ExclusiveString();
+        MasterMessage = new ExclusiveString();
+        UDPMasterMessage.SetData("");
+        MasterMessage.SetData("");
+        UsingUDP = false;
+    }
+    
+    /// <summary>
+    /// Helper function will parse out a vector 3 from 
+    /// Unity's default Vector 3 ToString()
+    /// </summary>
+    /// <param name="v">The string form of the desired vector</param>
+    /// <returns>The vector3 object of the string.</returns>
+    public static Vector3 Vector3FromString(string v)
+    {
+        string raw = v.Trim('(').Trim(')');
+        string [] args = raw.Split(',');
+        return new Vector3(float.Parse(args[0].Trim()), float.Parse(args[1].Trim()), float.Parse(args[2].Trim()));
+    }
+    /// <summary>
+    /// This function will be called once a client is established
+    /// This function will synchronize the new player with all 
+    /// of the networked game objects.
+    /// It will also spawn the network Player Manager.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public override IEnumerator OnClientConnect(int id)
+    {
+        if (IsServer)
         {
-            IsServer = false;
-            IsClient = false;
-            IsConnected = false;
-            CurrentlyConnecting = false;
-            //ipAddress = "127.0.0.1";//Local host
-            if (IpAddress == "")
+            yield return new WaitForSeconds(1);
+            foreach (KeyValuePair<int, NetworkID> entry in NetObjs)
             {
-                IpAddress = "127.0.0.1";//Local host
+                string MSG = "CREATE#" + entry.Value.Type + "#" + entry.Value.Owner +
+               "#" + entry.Value.NetId + "#" + entry.Value.gameObject.transform.position.ToString() + "#"
+               + entry.Value.gameObject.transform.rotation.eulerAngles.ToString();
+                //Connections[ConCounter - 1].Send(Encoding.ASCII.GetBytes(MSG));
+                Send(MSG, id);
             }
-            if (Port == 0)
-            {
-                Port = 9001;
-            }
-            Connections = new Dictionary<int, NetworkConnection>();
-            NetObjs = new Dictionary<int, NetworkID>();
+            yield return new WaitForSeconds(.1f);
+            NetCreateObject(-1, id);
         }
-
-
-        /// <summary>
-        /// Server Functions
-        /// StartServer -> Initialize Listener and Slow Update
-        ///     - WIll spawn the first prefab as a "NetworkPlayerManager"
-        /// Listen -> Will bind to a port and allow clients to join.
-        /// </summary>
-        public void StartServer()
+    }
+    /// <summary>
+    /// This will remove all game objects for the player who is disconnecting.
+    /// Also used by the server to disconnect all players when the server goes down.
+    /// </summary>
+    /// <param name="id">ID of the bad connection the server is removing</param>
+    /// <returns>IEnumerator to delay for synchronization</returns>
+    public override IEnumerator OnClientDisconnect(int id)
+    {
+        OnClientDisc(id);
+        yield break;
+    }
+    /// <summary>
+    /// IF you were a client in the last game.
+    /// You will return to the Main Menu.
+    /// This is compatible with the Lobby Manager.
+    /// </summary>
+    /// <param name="id">ID of the client whos connection has been ended</param>
+    public override void OnClientDisconnectCleanup(int id)
+    {
+        if (GameObject.FindObjectOfType<LobbyManager>() != null && !GameObject.FindObjectOfType<LobbyManager>().IsMaster)
         {
-            if (!IsConnected)
-            {
-                ListeningThread = StartCoroutine(Listen());
-                StartCoroutine(SlowUpdate());
-            }
+            GameObject.FindObjectOfType<LobbyManager>().UI_Quit();
+        }   
+    }
+    /// <summary>
+    /// This will gather all messages that need to be sent form the NetworkIdentities
+    /// Then either send it to the server or to all of the clients.
+    /// This will also send the UDP messages as well.
+    /// </summary>
+    public override void OnSlowUpdate()
+    {
+
+        foreach (KeyValuePair<int, NetworkID> id in NetObjs)
+        {
+            //Add their message to the masterMessage (the one we send)
+            MasterMessage += id.Value.GameObjectMessages.ReadAndClear() + "\n";
+            UDPMasterMessage += id.Value.UDPGameObjectMessages.ReadAndClear() + "\n";
         }
-
-        public void StopListening()
+        //Send Master Message
+        List<int> bad = new List<int>();
+        if (MasterMessage.Str != "")
         {
-            if(IsServer && CanJoin)
-            {   
-                CurrentlyConnecting = false;
-                StopCoroutine(ListeningThread);
-                TCP_Listener.Close();
-            }
-        }
-
-        public IEnumerator Listen()
-        {
-            //If we are listening then we are the server.
-            IsServer = true;
-            IsConnected = true;
-            IsClient = false;
-            LocalPlayerId = -1; //For server the localplayer id will be -1.
-                                //Initialize port to listen to
-                                
-            IPAddress ip = (IPAddress.Any);
-            IPEndPoint endP = new IPEndPoint(ip, Port);
-            //We could do UDP in some cases but for now we will do TCP
-            TCP_Listener = new Socket(ip.AddressFamily,SocketType.Stream, ProtocolType.Tcp);
-
-            //Now I have a socket listener.
-            TCP_Listener.Bind(endP);
-            TCP_Listener.Listen(MaxConnections);
-
-            while(CanJoin)
+            string msgToSend = MasterMessage.ReadAndClear();
+            string UDPmsgToSend = UDPMasterMessage.ReadAndClear();
+            foreach (KeyValuePair<int, Connector> item in Connections)
             {
-                CurrentlyConnecting = false;
-                
-                TCP_Listener.BeginAccept(new System.AsyncCallback(this.ListenCallBack), TCP_Listener);               
-                yield return new WaitUntil(() => CurrentlyConnecting);
-                DateTime time2 = DateTime.Now;
-                TimeSpan timeS = time2 - StartConnection;
-
-                CurrentlyConnecting = false;
-                if (Connections.ContainsKey(ConCounter - 1) == false)
+                try
                 {
-                    //Connection was not fully established.
-                    continue;
+                    //This will send all of the information to the client (or to the server if on a client).
+                    Send(msgToSend, item.Key);
+                    Send(UDPmsgToSend, item.Key, false);
                 }
-                yield return new WaitForSeconds(2*(float)timeS.TotalSeconds);
-                Connections[ConCounter - 1].Send(Encoding.ASCII.GetBytes("PLAYERID#" + Connections[ConCounter - 1].PlayerId + "\n"));
-                //Start Server side listening for client messages.
-                StartCoroutine(Connections[ConCounter - 1].TCPRecv());
-
-                //Udpate all current network objects
-                foreach (KeyValuePair<int,NetworkID> entry in NetObjs)
-                {//This will create a custom create string for each existing object in the game.
-                    string tempRot = entry.Value.transform.rotation.ToString();
-                    tempRot = tempRot.Replace(',', '#');
-                    tempRot = tempRot.Replace('(', '#');
-                    tempRot = tempRot.Replace(')', '\0');            
-
-                    string MSG = "CREATE#" + entry.Value.Type + "#" + entry.Value.Owner +
-                   "#" + entry.Value.NetId + "#" + entry.Value.transform.position.x.ToString("n2") + 
-                   "#" + entry.Value.transform.position.y.ToString("n2") + "#" 
-                   + entry.Value.transform.position.z.ToString("n2") + tempRot+"\n";
-                    Connections[ConCounter - 1].Send(Encoding.ASCII.GetBytes(MSG));
-                }
-                //Create NetworkPlayerManager
-                NetCreateObject(-1, ConCounter - 1, new Vector3(Connections[ConCounter -1].PlayerId*2-3,0,0));
-                yield return new WaitForSeconds(.1f);
-            }
-        }
-        public void ListenCallBack(System.IAsyncResult ar)
-        {
-            StartConnection = DateTime.Now;
-            Socket listener = (Socket)ar.AsyncState;
-            Socket handler = listener.EndAccept(ar);
-            NetworkConnection temp = new NetworkConnection();
-            temp.TCPCon = handler;
-            temp.PlayerId = ConCounter;
-            ConCounter++;
-            temp.MyCore = this;
-            lock (_conLock)
-            {
-                Connections.Add(temp.PlayerId, temp);
-            }
-            CurrentlyConnecting = true;
-        }
-
-        public void CloseGame()
-        {
-            if (IsServer && IsConnected && CanJoin)
-            {
-                CanJoin = false;
-                StopCoroutine(ListeningThread);
-            }
-        }
-
-        /// <summary>
-        /// Client Functions 
-        /// Start Client - Will join with a server specified
-        /// at IpAddress and Port.
-        /// </summary>
-
-        public void StartClient()
-        {
-            if (!IsConnected)
-            {
-                StartCoroutine(ConnectingClient());
-            }
-        }
-        public IEnumerator ConnectingClient()
-        {
-            IsServer = false;
-            IsClient = false;
-            IsConnected = false;
-            CurrentlyConnecting = false;
-            //Setup our socket
-            IPAddress ip = (IPAddress.Parse(IpAddress));
-            IPEndPoint endP = new IPEndPoint(ip, Port);
-            Socket clientSocket = new Socket(ip.AddressFamily, SocketType.Stream,
-                ProtocolType.Tcp);
-            //Connect client
-            clientSocket.BeginConnect(endP, ConnectingCallback, clientSocket);
-            Debug.Log("Trying to wait for server...");
-            //Wait for the client to connect
-            while(!CurrentlyConnecting)
-            {
-                yield return new WaitForSeconds(MasterTimer);
-            }
-            //yield return new WaitUntil(() => CurrentlyConnecting);
-            StartCoroutine(Connections[0].TCPRecv());  //It is 0 on the client because we only have 1 socket.
-            StartCoroutine(SlowUpdate());  //This will allow the client to send messages to the server.
-        }
-
-        public void ConnectingCallback(System.IAsyncResult ar)
-        {
-            //Client will use the con list (but only have one entry).
-            IsClient = true;
-            NetworkConnection temp = new NetworkConnection();
-            temp.TCPCon = (Socket)ar.AsyncState;
-            temp.TCPCon.EndConnect(ar);//This finishes the TCP connection (DOES NOT DISCONNECT)    
-            IsConnected = true;   
-            temp.MyCore = this;
-            Connections.Add(0, temp);
-            CurrentlyConnecting = true;
-        }
-        /// <summary>
-        /// Disconnect functions
-        /// Leave game 
-        /// Disconnect
-        /// OnClientDisconnect -> is virtual so you can override it
-        /// </summary>
-        public void Disconnect(int badConnection)
-        {
-            if (IsClient)
-            {
-                if (Connections.ContainsKey(badConnection))
+                catch (System.Exception e)
                 {
-                    NetworkConnection badCon = Connections[badConnection];
+                    GenericNetworkCore.Logger("Exception occured in slow update: " + e.ToString());
+                    bad.Add(item.Key);
+                }
+            }
+            //MasterMessage.SetData("");//delete old values.
+            foreach (int i in bad)
+            {
+                GenericNetworkCore.Logger("We are disconecting Connection " + i.ToString()+" from "+name+":"+this.GetType().ToString());
+                this.Disconnect(i);
+            }
+        }
+    }
+    /// <summary>
+    /// This function get's called from TCP and UDP receive functions.
+    /// Therefore, the game programmer does not have to worry about having two 
+    /// seperate handle messages.
+    /// </summary>
+    /// <param name="commands">The string containing the received message.</param>
+    public override void OnHandleMessages(string commands)
+    {
+        try
+        {
+            if (commands.Trim(' ') == "OK" && IsClient)
+            {
+                //Heartbeat
+            }
+
+            else if (commands.Contains("CREATE#"))
+            {
+                if (IsClient)
+                {
+                    string[] arg = commands.Split('#');
                     try
                     {
-                        badCon.TCPCon.Shutdown(SocketShutdown.Both);
-                    }
-                    catch
-                    { }                 
-                    try
-                    {badCon.TCPCon.Close();}
-                    catch
-                    {}
-                }
-                this.IsClient = false;
-                this.IsServer = false;
-                this.IsConnected = false;
-                this.LocalPlayerId = -10;
-                foreach (KeyValuePair<int, NetworkID> obj in NetObjs)
-                {
-                    Destroy(obj.Value.gameObject);
-                }
-                NetObjs.Clear();
-                Connections.Clear();              
-            }
-            if (IsServer)
-            {
-                try
-                {
-                    if (Connections.ContainsKey(badConnection))
-                    {
-                        NetworkConnection badCon = Connections[badConnection];
-                        badCon.TCPCon.Shutdown(SocketShutdown.Both);
-                        badCon.TCPCon.Close();  
-                    }
-                }
-                catch (System.Net.Sockets.SocketException)
-                {
-                    //Bad Connection already closed.
-                }
-                catch (System.ObjectDisposedException)
-                {
-                    //Socket already shutdown
-                }
-                catch (Exception e)
-                {
-                    //In case anything else goes wrong.
-                    Debug.Log("Warning - Error caught in the generic catch!\nINFO: "+e.ToString());
-                }
-                //Delete All other players objects....
-                OnClientDisc(badConnection);
-                Connections.Remove(badConnection);
-            }
-        }
-        public virtual void OnClientDisc(int badConnection)
-        {
-            if (IsServer)
-            { 
-                //Remove Connection from server
-                List<int> badObjs = new List<int>();
-                foreach (KeyValuePair<int, NetworkID> obj in NetObjs)
-                {
-                    if (obj.Value.Owner == badConnection)
-                    {
-                        badObjs.Add(obj.Key);
-                        //I have to add the key to a temp list and delete
-                        //it outside of this for loop
-                    }
-                }
-                //Now I can remove the netObjs from the dictionary.
-                for (int i = 0; i < badObjs.Count; i++)
-                {
-                    NetDestroyObject(badObjs[i]);
-                }
-            }
-        }
-        public void LeaveGame()
-        {
-            if (IsClient && IsConnected)
-            {
-                try
-                {
-                    lock (_conLock)
-                    {
-                        Debug.Log("Sending Disconnect!");
-                        Connections[0].IsDisconnecting = true;
-
-                        Connections[0].Send(Encoding.ASCII.
-                                            GetBytes(
-                                            "DISCON#" + Connections[0].PlayerId.ToString() + "\n")
-                                            );
-
-                    }
-                }
-                catch (System.NullReferenceException)
-                {
-                    //Client double-tapped disconnect.
-                    //Ignore.
-                }
-                StartCoroutine(WaitForDisc());
-                
-            }
-            if (IsServer && IsConnected)
-            {
-                try
-                {
-                    foreach (KeyValuePair<int, NetworkConnection> obj in Connections)
-                    {
-                        lock (_conLock)
+                        int o = int.Parse(arg[2]);
+                        int n = int.Parse(arg[3]);
+                        Vector3 pos = NetworkCore.Vector3FromString(arg[4]);
+                        Quaternion qtemp = Quaternion.Euler(NetworkCore.Vector3FromString(arg[5]));
+                        int type = int.Parse(arg[1]);
+                        GameObject Temp;
+                        if (type != -1)
                         {
-                            Connections[obj.Key].Send(Encoding.ASCII.
-                                             GetBytes(
-                                             "DISCON#-1\n")
-                                             );
-                            Connections[obj.Key].IsDisconnecting = true;
+                            Temp = GameObject.Instantiate(SpawnPrefab[int.Parse(arg[1])], pos, qtemp);
+                        }
+                        else
+                        {
+                            Temp = GameObject.Instantiate(NetworkPlayerManager, pos, qtemp);
+                        }
+                        Temp.GetComponent<NetworkID>().Owner = o;
+                        Temp.GetComponent<NetworkID>().NetId = n;
+                        Temp.GetComponent<NetworkID>().Type = type;
+                        NetObjs.Add(n,Temp.GetComponent<NetworkID>());
+                    }
+                    catch(System.Exception e)
+                    {
+                        //Malformed packet.
+                        GenericNetworkCore.Logger("Exception occured inside create! "+e.ToString());
+                    }
+                }
+            }
+            else if (commands.Contains("DELETE#"))
+            {
+                if (IsClient)
+                {
+                    try
+                    {
+                        string[] args = commands.Split('#');
+                        if (NetObjs.ContainsKey(int.Parse(args[1])))
+                        {
+                            GameObject.Destroy(NetObjs[int.Parse(args[1])].gameObject);
+                            NetObjs.Remove(int.Parse(args[1]));
+                        }
+                    }
+                    catch (System.Exception e)
+                    {
+                        GenericNetworkCore.Logger("ERROR OCCURED: " + e);
+                    }
+                }
+            }
+            else if (commands.Contains("DIRTY#"))
+            {
+                if (IsServer)
+                {
+                    int id = int.Parse(commands.Split('#')[1]);
+                    if (NetObjs.ContainsKey(id))
+                    {
+                        foreach (NetworkComponent n in NetObjs[id].gameObject.GetComponents<NetworkComponent>())
+                        {
+                            n.IsDirty = true;
                         }
                     }
                 }
-                catch { }
-                IsServer = false;
-                try
-                {
-                    foreach (KeyValuePair<int, NetworkID> obj in NetObjs)
-                    {
-                        Destroy(obj.Value.gameObject);
-                    }
-                }
-                catch (System.NullReferenceException)
-                {
-                    //Objects already destroyed.
-                }
-                try
-                {
-                    foreach (KeyValuePair<int, NetworkConnection> entry in Connections)
-                    {
-                        Disconnect(entry.Key);
-                    }
-                }
-                catch (System.NullReferenceException)
-                {
-                    Debug.Log("Inside Disonnect error!");
-                    //connections already destroyed.
-                }
-                IsConnected = false;
-                IsClient = false;
-                CurrentlyConnecting = false;
-                CanJoin = true;
-                try
-                {
-                    NetObjs.Clear();
-                    Connections.Clear();
-                    StopCoroutine(ListeningThread);  
-                    TCP_Listener.Close();
-                    
-                }
-                catch (System.NullReferenceException)
-                {
-                    Debug.Log("Inside error.");
-                    NetObjs = new Dictionary<int, NetworkID>();
-                    Connections = new Dictionary<int, NetworkConnection>();
-                }              
             }
-        }
-        IEnumerator WaitForDisc()
-        {
-            if (IsClient)
-             {
-                yield return new WaitUntil(() => Connections[0].DidDisconnect);
-                Disconnect(0);
-            }
-            yield return new WaitForSeconds(.1f);
-        }
-        public void OnApplicationQuit()
-        {
-            LeaveGame();
-        }
-        /// <summary>
-        /// Object functions
-        /// NetCreateObject -> creates an object across the network
-        /// NetDestroyObject -> Destroys an object across the network
-        /// </summary>
-        public GameObject NetCreateObject(int type, int ownMe, Vector3 initPos = new Vector3() , Quaternion rotation = new Quaternion())
-        {
-            if (IsServer)
+            else if (commands.Contains("COMMAND#") || commands.Contains("UPDATE#"))
             {
-                GameObject temp;
-                lock(_objLock)
+                //We will assume it is Game Object specific message
+                //string msg = "COMMAND#" + myId.netId + "#" + var + "#" + value;
+                string[] args = commands.Split('#');
+                int n = int.Parse(args[1]);
+                if (NetObjs.ContainsKey(n))
                 {
-                    if (type != -1)
-                    {
-                        temp = GameObject.Instantiate(SpawnPrefab[type], initPos, rotation);
-                    }
-                    else
-                    {
-                        temp = GameObject.Instantiate(NetworkPlayerManager, initPos, rotation);
-                    }
-                    temp.GetComponent<NetworkID>().Owner = ownMe;
-                    temp.GetComponent<NetworkID>().NetId = ObjectCounter;
-                    temp.GetComponent<NetworkID>().Type = type;
-                    NetObjs[ObjectCounter] = temp.GetComponent<NetworkID>();
-                    ObjectCounter++;
-                    string MSG = "CREATE#" + type + "#" + ownMe +
-                    "#" + (ObjectCounter - 1) + "#" + initPos.x.ToString("n2") + "#" +
-                    initPos.y.ToString("n2") + "#" + initPos.z.ToString("n2")+"#"+
-                    rotation.x.ToString("n2")+"#" + rotation.y.ToString("n2") + "#" + rotation.z.ToString("n2") + "#" + rotation.w.ToString("n2")+ "\n";
-                    lock(_masterMessage)
-                    {
-                        MasterMessage += MSG;
-                    }
-                    foreach(NetworkComponent n in temp.GetComponents<NetworkComponent>())
-                    {
-                        //Force update to all clients.
-                        n.IsDirty = true;
-                    }
+                    NetObjs[n].Net_Update(args[0], args[2], args[3]);
                 }
-                return temp;
+            }
+        }
+        catch(System.Exception e)
+        {
+            GenericNetworkCore.Logger("Exception in handle message: "+e.ToString());
+        }
+        
+    }
+
+    /// <summary>
+    /// This will spawn a game object across the network.
+    /// The prefab will be identified by the index = to type.
+    /// Server Only
+    /// </summary>
+    /// <param name="type">Index on the spawn prefab array</param>
+    /// <param name="ownMe">Which player owns the object, -1 for server.</param>
+    /// <param name="initPos">The initial position for the new object.</param>
+    /// <param name="rotation">The initial rotation for the desired game object.</param>
+    /// <returns>This function returns a pointer to the new game object.  (Server only)</returns>
+    public GameObject NetCreateObject(int type, int ownMe, Vector3 initPos = new Vector3(), Quaternion rotation = new Quaternion())
+    {
+        if (IsServer)
+        {
+            GameObject temp;
+            if (type != -1)
+            {
+                temp = GameObject.Instantiate(SpawnPrefab[type], initPos, rotation);
             }
             else
             {
-                return null;
+                temp = GameObject.Instantiate(NetworkPlayerManager, initPos, rotation);
             }
-
+            temp.GetComponent<NetworkID>().Owner = ownMe;
+            temp.GetComponent<NetworkID>().NetId = ObjectCounter;
+            temp.GetComponent<NetworkID>().Type = type;
+            NetObjs.Add(ObjectCounter,temp.GetComponent<NetworkID>());
+            ObjectCounter++;
+            string MSG = "CREATE#" + type + "#" + ownMe +
+            "#" + (ObjectCounter - 1) + "#" + initPos.ToString() + "#" +
+            rotation.eulerAngles.ToString()+ "\n";
+            MasterMessage += MSG;     
+            foreach (NetworkComponent n in temp.GetComponents<NetworkComponent>())
+            {
+                //Force update to all clients.
+                n.IsDirty = true;
+            }
+            
+        return temp;
         }
-        public void NetDestroyObject(int netIDBad)
+        else
+        {
+            return null;
+        }
+
+    }
+
+    /// <summary>
+    /// This will destroy an object with a given ID 
+    /// across the network.
+    /// Serer Only.
+    /// </summary>
+    /// <param name="netIDBad">The net ID of the object to Destroy.</param>
+    public void NetDestroyObject(int netIDBad)
+    {
+        if (IsServer)
         {
             try
             {
@@ -471,101 +319,63 @@ namespace NETWORK_ENGINE
             {
                 //Already been destroyed.
             }
-            string msg = "DELETE#" + netIDBad+"\n";
-            lock(_masterMessage)
-            {
-                MasterMessage += msg;
-            }
-            
-        }
-
-
-        /// <summary>
-        /// Support functions
-        /// Slow Update()
-        /// SetIP address
-        /// SetPort
-        /// </summary>
-
-        public IEnumerator SlowUpdate()
-        {
-            while (true)
-            {
-                //Compose Master Message
-
-                foreach(KeyValuePair<int, NetworkID> id in NetObjs)
-                {
-                    lock (_masterMessage)
-                    {
-                        //Add their message to the masterMessage (the one we send)
-                        lock (id.Value._lock)
-                        {
-                            MasterMessage += id.Value.GameObjectMessages + "\n";
-                            //Clear Game Objects messages.
-                            id.Value.GameObjectMessages = "";
-                        }
-
-                    }
-
-                }
-
-                //Send Master Message
-                List<int> bad = new List<int>();
-                if(MasterMessage != "")
-                {
-                    foreach(KeyValuePair<int,NetworkConnection> item in Connections)
-                    {
-                        try
-                        {
-                            //This will send all of the information to the client (or to the server if on a client).
-                            item.Value.Send(Encoding.ASCII.GetBytes(MasterMessage));
-                        }
-                        catch
-                        {
-                            bad.Add(item.Key);
-                        }
-                    }
-                    lock(_masterMessage)
-                    {
-                        MasterMessage = "";//delete old values.
-                        
-                    }
-                    lock (_conLock)
-                    {
-                        foreach (int i in bad)
-                        {
-                            this.Disconnect(i);
-                        }
-                    }
-                }
-                lock (_waitingLock)
-                {
-                    MessageWaiting = false;
-                }
-                while(!MessageWaiting && MasterMessage == "")
-                {
-                    yield return new WaitForSeconds(MasterTimer);//
-                }
-                //yield return new WaitUntil(() => (MessageWaiting || MasterMessage != ""));
-                //yield return new WaitForSeconds(MasterTimer);
-            }
-        }
-
-        public void SetIp(string ip)
-        {
-            IpAddress = ip;
-        }
-        public void SetPort(string p)
-        {
-            Port = int.Parse(p);
-        }
-
-
-
-        // Update is called once per frame
-        void Update()
-        {
-
+            string msg = "DELETE#" + netIDBad + "\n";
+            MasterMessage += msg;
         }
     }
+    /// <summary>
+    /// This is a virtual function intended to be overriden.
+    /// By default thsi function will destroy all objects that belong to a player
+    /// that is disconnecting.  
+    /// (Note disconnection may not have occured yet).
+    /// 
+    /// </summary>
+    /// <param name="badConnection">The ID of the player who is leaving.</param>
+    public virtual void OnClientDisc(int badConnection)
+    {
+        if (IsServer)
+        {
+            //Remove Connection from server
+            List<int> badObjs = new List<int>();
+            foreach (KeyValuePair<int, NetworkID> obj in NetObjs)
+            {
+                if (obj.Value.Owner == badConnection)
+                {
+                    badObjs.Add(obj.Key);
+                    //I have to add the key to a temp list and delete
+                    //it outside of this for loop
+                }
+            }
+            //Now I can remove the netObjs from the dictionary.
+            for (int i = 0; i < badObjs.Count; i++)
+            {
+                NetDestroyObject(badObjs[i]);
+            }
+        }
+    }
+    /// <summary>
+    /// This will request the lobby manager to remove the game from the available lists.
+    /// Once your game logic says all players are ready, then start the game.
+    /// The game manager on the server should call this function.
+    /// </summary>
+    public void NotifyGameStart()
+    {
+        if(IsServer)
+        {
+            if(GameObject.FindObjectOfType<LobbyManager>() != null)
+            {
+                GameObject.FindObjectOfType<LobbyManager>().NotifyGameStarted();
+                OnGameStarted();
+            }
+        }
+    }
+
+    /// <summary>
+    /// A virtual function to give the player a hook to insert custom code once a game has started.
+    /// </summary>
+    public virtual void OnGameStarted()
+    {
+
+    }
+
 }

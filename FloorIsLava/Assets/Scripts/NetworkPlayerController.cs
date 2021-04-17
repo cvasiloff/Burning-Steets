@@ -6,6 +6,9 @@ using UnityEngine.UI;
 
 public class NetworkPlayerController : NetworkComponent
 {
+    public Animator myAnime;
+    public int animState = 0;
+
     public GameObject Filler;
     public Weapon WepInHand;
     public int MaxWepCount;
@@ -56,10 +59,42 @@ public class NetworkPlayerController : NetworkComponent
                     MyRig.velocity = temptemp;
                 }
             }
+            SendUpdate("ANIMATION", args[0].ToString()+","+args[1].ToString());
             //if((temptemp.x > -MoveSpeed && temptemp.x<MoveSpeed) && (temptemp.y > -JumpHeight && temptemp.y<JumpHeight) && (temptemp.z > -MoveSpeed && temptemp.z<MoveSpeed))
             //{
             //    MyRig.velocity = temptemp;
             //}
+        }
+
+        if(flag == "ANIMATION")
+        {
+            string[] args = value.Split(',');
+
+            switch(int.Parse(args[0]))
+            {
+                case 1:
+                    UpdateAnimator(1);
+                    break;
+                case -1:
+                    UpdateAnimator(2);
+                    break;
+                case 0:
+                    switch(int.Parse(args[1]))
+                    {
+                        case 1:
+                            UpdateAnimator(3);
+                            break;
+                        case -1:
+                            UpdateAnimator(4);
+                            break;
+                        case 0:
+                            UpdateAnimator(0);
+                            break;
+                    }
+                    break;
+
+            }
+            
         }
 
         if (flag == "ROTATE" && IsServer)
@@ -171,7 +206,7 @@ public class NetworkPlayerController : NetworkComponent
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
-            this.GetComponent<MeshRenderer>().enabled = false;
+            this.transform.GetChild(0).GetComponent<SkinnedMeshRenderer>().enabled = false;
         }
 
         if(IsServer)
@@ -186,8 +221,10 @@ public class NetworkPlayerController : NetworkComponent
 
         while (true)
         {
-            if(IsLocalPlayer)
+            
+            if(IsLocalPlayer && IsClient)
             {
+                
                 SendCommand("MOVE", Input.GetAxisRaw("Vertical").ToString() + ',' + Input.GetAxisRaw("Horizontal").ToString());
                 SendCommand("ROTATE", cameraX.ToString() + ',' + cameraY.ToString());
 
@@ -235,7 +272,11 @@ public class NetworkPlayerController : NetworkComponent
             yield return new WaitForSeconds(MyCore.MasterTimer); //Master timer is 0.05f
         }
     }
-
+    public void UpdateAnimator(int anim)
+    {
+        animState = anim;
+        
+    }
     public void AddWeapon(int ID)
     {
         if(Weapons.Count < MaxWepCount && IsServer)
@@ -259,6 +300,7 @@ public class NetworkPlayerController : NetworkComponent
     {
         MyRig = GetComponent<Rigidbody>();
         MyCam = Camera.main;
+        myAnime = this.GetComponent<Animator>();
         JumpNum = MaxJumpNum;
 
         for (int i = 0; i < WeaponParent.transform.childCount; i++)
@@ -274,7 +316,7 @@ public class NetworkPlayerController : NetworkComponent
     // Update is called once per frame
     void Update()
     {
-        if (IsLocalPlayer)
+        if (IsLocalPlayer && IsClient)
         {
             mRotationX = Input.GetAxisRaw("Mouse X") * sensitivity;
 
@@ -299,36 +341,50 @@ public class NetworkPlayerController : NetworkComponent
                 JumpButtonDown = false;
             }
         }
+
+        //Update Animations
+        if(IsClient)
+        {
+            myAnime.SetInteger("animState", animState);
+        }
     }
 
     private void LateUpdate()
     {
-        if(IsLocalPlayer)
+        if(IsLocalPlayer && IsClient)
             MyCam.transform.position = Vector3.Lerp(MyCam.transform.position, CameraPos.position, 0.2f);
     }
 
     private void OnCollisionEnter(Collision collision)
     {
+        
+        //Put an IsServer check here
         if(collision.gameObject.tag == "Floor")
         {
             JumpNum = MaxJumpNum;
         }
 
-        if(collision.gameObject.tag == "Lobby")
+        //Give the server authority and change teams when it hits the Lobby Team
+        if(IsServer)
         {
-            string temp = collision.gameObject.name;
-            if(IsClient)
+            if (collision.gameObject.tag == "Lobby")
             {
+                string temp = collision.gameObject.name;
+
                 NetworkPlayer[] playersInScene = GameObject.FindObjectsOfType<NetworkPlayer>();
                 foreach (NetworkPlayer p in playersInScene)
                 {
                     if (p.Owner == this.Owner)
                     {
-                        p.SendCommand("SETTEAM", temp);
+                        p.Team = temp;
+                        p.canStart = true;
+                        p.SendUpdate("TEAM", temp);
                     }
                 }
+                
             }
         }
+        
     }
 }
 

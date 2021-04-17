@@ -47,7 +47,7 @@ public class NetworkNavMeshAgent : MonoBehaviour
 
 	void Update()
 	{
-		if (MyAgent.remainingDistance < .1f && MyAgent.isOnNavMesh)
+		if (MyAgent.remainingDistance < .1f && MyAgent.isOnNavMesh && MyNetT.IsServer)
 		{
 			GoToNext();
 		}

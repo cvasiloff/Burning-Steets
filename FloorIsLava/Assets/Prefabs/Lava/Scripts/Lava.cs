@@ -32,6 +32,11 @@ public class Lava : NetworkComponent
         }
     }
 
+    public IEnumerator LavaDelay(float time)
+    {
+        yield return new WaitForSeconds(time);
+        canMove = true;
+    }
     public void MoveLava()
     {
         if(myRig.position.y <= levels[currentLevel])
@@ -63,19 +68,16 @@ public class Lava : NetworkComponent
 
     public void PlayerDeath(NetworkPlayerController player)
     {
-        
-        
         NetworkPlayer[] myPlayers = FindObjectsOfType<NetworkPlayer>();
 
         foreach(NetworkPlayer p in myPlayers)
         {
             if(p.Owner == player.Owner)
             {
-                Debug.Log(p.Owner + " and " + player.Owner);
+                p.KillPlayer(player);
             }
         }
-        MyCore.NetDestroyObject(player.NetId);
-        MyCore.NetCreateObject(player.Type, player.Owner, new Vector3(0, 0, 0));
+        
     }
 
     private void OnTriggerEnter(Collider other)

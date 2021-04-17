@@ -13,10 +13,10 @@ public class NetworkPlayer : NetworkComponent
     public int ModelNum;
 
     public bool isReady = false;
-    public string Team = "RED";
+    public bool canStart = false;
 
-
-    public int playerCount = 0;
+    public string Team = "";
+    NetworkedGM gm;
 
 
     public override void HandleMessage(string flag, string value)
@@ -72,6 +72,7 @@ public class NetworkPlayer : NetworkComponent
         if (flag == "SETTEAM")
         {
             SetPlayerTeam(this, value);
+            SetPlayerStart();
             if (IsServer)
             {
                 SendUpdate("SETTEAM", value);
@@ -86,6 +87,20 @@ public class NetworkPlayer : NetworkComponent
             }
         }
 
+        if(flag == "REMOVEWEAPONS" && IsClient)
+        {
+            if(IsLocalPlayer)
+            {
+                if(Owner == int.Parse(value))
+                {
+                    foreach(Transform child in Camera.main.transform)
+                    {
+                        Destroy(child.gameObject);
+                    }
+                }
+            }
+        }
+
     }
 
     void SetPlayerReady(NetworkPlayer player)
@@ -93,17 +108,27 @@ public class NetworkPlayer : NetworkComponent
         isReady = true;
     }
 
+    void SetPlayerStart()
+    {
+        canStart = true;
+    }
+
     void SetPlayerTeam(NetworkPlayer player, string team)
     {
         Team = team;
     }
 
+    void SetTeam()
+    {
+
+    }
+
     public override IEnumerator SlowUpdate()
     {
      
-        if (IsLocalPlayer)
+        if (IsClient && IsLocalPlayer)
         {
-            GameObject.Find("NetworkManager").transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
+            GameObject.FindGameObjectWithTag("NetworkManager").transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
 
             NetworkPlayer[] MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
 
@@ -115,6 +140,46 @@ public class NetworkPlayer : NetworkComponent
                 }
             }
         }
+
+        while (!isReady)
+        {
+            if(IsServer)
+            {
+                if (IsDirty)
+                {
+                    //Update non-movement varialbes
+                    SendUpdate("PNAME", PNAME);
+                    SendUpdate("READY", isReady.ToString());
+                    SendUpdate("COLOR", ColorType);
+                    SendUpdate("MODEL", ModelNum.ToString());
+                    SendUpdate("TEAM", Team);
+                    IsDirty = false;
+                }
+            }
+            yield return new WaitForSeconds(MyCore.MasterTimer);
+        }
+
+        if (IsServer)
+        {
+            
+            MyCore.NetCreateObject(ModelNum + 1, Owner, new Vector3(-18 + ((Owner * 3)), 89, -112));
+            SendUpdate("PNAME", PNAME);
+        }
+
+        if(IsClient && IsLocalPlayer)
+        {
+            NetworkPlayer[] MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
+
+            foreach (NetworkPlayer x in MyPlayers)
+            {
+                if (x.NetId == this.NetId)
+                {
+                    x.transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
+                }
+            }
+        }
+
+
 
 
 
@@ -136,6 +201,43 @@ public class NetworkPlayer : NetworkComponent
                 }
             }
             yield return new WaitForSeconds(MyCore.MasterTimer); //Master timer is 0.05f
+        }
+    }
+
+    public void KillPlayer(NetworkPlayerController player)
+    {
+
+        SendUpdate("REMOVEWEAPONS",player.Owner.ToString());
+
+        //If object is destroyed in capture zone, flag will still be captured
+        MyCore.NetDestroyObject(player.NetId);
+        StartCoroutine(RespawnPlayer(5, player));
+
+        
+    }
+
+    public IEnumerator RespawnPlayer(float time, NetworkPlayerController player)
+    {
+        yield return new WaitForSeconds(time);
+        NetworkPlayer[] MyPlayers = FindObjectsOfType<NetworkPlayer>();
+        foreach (NetworkPlayer p in MyPlayers)
+        {
+            if(p.Owner == player.Owner)
+            {
+                if(p.Team == "RED")
+                {
+                    Debug.Log(gm.TeamRedSpawn[0].transform.GetChild(0).transform.position);
+                    MyCore.NetCreateObject(player.Type, player.Owner, 
+                        gm.TeamRedSpawn[gm.currControlPoint].transform.GetChild(p.Owner%7).transform.position, 
+                        gm.TeamRedSpawn[gm.currControlPoint].transform.GetChild(p.Owner % 7).transform.rotation);
+                    
+                }
+                else if(p.Team == "GREEN")
+                {
+                    MyCore.NetCreateObject(player.Type, player.Owner, gm.TeamGreenSpawn[gm.currControlPoint].transform.GetChild(0).transform.position);
+                }
+                break;
+            }
         }
     }
 
@@ -178,7 +280,7 @@ public class NetworkPlayer : NetworkComponent
     // Start is called before the first frame update
     void Start()
     {
-
+        gm = FindObjectOfType<NetworkedGM>();
     }
 
     // Update is called once per frame
