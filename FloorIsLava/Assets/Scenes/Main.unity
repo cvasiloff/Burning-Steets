@@ -1053,7 +1053,7 @@ MonoBehaviour:
   ConCounter: 0
   SpawnPrefab:
   - {fileID: 719092653263148600, guid: c1253419f98922847b5e792da87d7969, type: 3}
-  - {fileID: 6911634883404302336, guid: 524ada11bdeae06419682d4ce1a8eddb, type: 3}
+  - {fileID: 6386773079109538633, guid: 09e2f786bb3c6ad4c9a6a45fda67a255, type: 3}
   - {fileID: 3035509360632028996, guid: 2cc95246ba3093447a9db156d25c8990, type: 3}
   - {fileID: 6657574307432563923, guid: 91ba8a6be56578743b50f0ec2103b060, type: 3}
   - {fileID: 76577849346128645, guid: e105ea83faf9fc34aaa93e77625e79e9, type: 3}
@@ -1128,7 +1128,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
+  near clip plane: 0.1
   far clip plane: 1000
   field of view: 60
   orthographic: 0

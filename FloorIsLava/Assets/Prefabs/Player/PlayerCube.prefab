@@ -288,7 +288,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4498573040250536822}
-  - {fileID: 6274446029939859962}
+  - {fileID: 6274446029939859846}
   - {fileID: 2339506030907018160}
   m_Father: {fileID: 8969377622604278201}
   m_RootOrder: 1
@@ -308,7 +308,7 @@ PrefabInstance:
     - target: {fileID: 3742694506912352786, guid: b3af1e1b8760e104d84bce9dcf5647cf,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 408667632406362113, guid: b3af1e1b8760e104d84bce9dcf5647cf,
         type: 3}
@@ -379,6 +379,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalScale.z
       value: 837.79004
+      objectReference: {fileID: 0}
+    - target: {fileID: 1808811245706197037, guid: b3af1e1b8760e104d84bce9dcf5647cf,
+        type: 3}
+      propertyPath: CurrentAmmo
+      value: 10000000
+      objectReference: {fileID: 0}
+    - target: {fileID: 1808811245706197037, guid: b3af1e1b8760e104d84bce9dcf5647cf,
+        type: 3}
+      propertyPath: IsInInventory
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1808811245706197037, guid: b3af1e1b8760e104d84bce9dcf5647cf,
+        type: 3}
+      propertyPath: CanShoot
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b3af1e1b8760e104d84bce9dcf5647cf, type: 3}
@@ -477,7 +492,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 729c578c96347e146985753cbab6bf09, type: 3}
---- !u!4 &6274446029939859962 stripped
+--- !u!4 &6274446029939859846 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 805742567715375641, guid: 729c578c96347e146985753cbab6bf09,
     type: 3}

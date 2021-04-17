@@ -19,8 +19,11 @@ public class ItemContainer : NetworkComponent
 
     public override IEnumerator SlowUpdate()
     {
-        MyRig.angularVelocity = new Vector3(0, 10, 0);
-        yield return new WaitForSeconds(MyCore.MasterTimer);
+        while(true)
+        {
+            MyRig.angularVelocity = new Vector3(0, 10, 0);
+            yield return new WaitForSeconds(MyCore.MasterTimer);
+        }       
     }
 
 
