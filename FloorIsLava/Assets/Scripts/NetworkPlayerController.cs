@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class NetworkPlayerController : NetworkComponent
 {
     public Animator myAnime;
+    public int animState = 0;
 
     public GameObject Filler;
     public Weapon WepInHand;
@@ -58,10 +59,42 @@ public class NetworkPlayerController : NetworkComponent
                     MyRig.velocity = temptemp;
                 }
             }
+            SendUpdate("ANIMATION", args[0].ToString()+","+args[1].ToString());
             //if((temptemp.x > -MoveSpeed && temptemp.x<MoveSpeed) && (temptemp.y > -JumpHeight && temptemp.y<JumpHeight) && (temptemp.z > -MoveSpeed && temptemp.z<MoveSpeed))
             //{
             //    MyRig.velocity = temptemp;
             //}
+        }
+
+        if(flag == "ANIMATION")
+        {
+            string[] args = value.Split(',');
+
+            switch(int.Parse(args[0]))
+            {
+                case 1:
+                    UpdateAnimator(1);
+                    break;
+                case -1:
+                    UpdateAnimator(2);
+                    break;
+                case 0:
+                    switch(int.Parse(args[1]))
+                    {
+                        case 1:
+                            UpdateAnimator(3);
+                            break;
+                        case -1:
+                            UpdateAnimator(4);
+                            break;
+                        case 0:
+                            UpdateAnimator(0);
+                            break;
+                    }
+                    break;
+
+            }
+            
         }
 
         if (flag == "ROTATE" && IsServer)
@@ -241,7 +274,8 @@ public class NetworkPlayerController : NetworkComponent
     }
     public void UpdateAnimator(int anim)
     {
-        myAnime.SetInteger("animState", anim);
+        animState = anim;
+        
     }
     public void AddWeapon(int ID)
     {
@@ -301,29 +335,9 @@ public class NetworkPlayerController : NetworkComponent
         }
 
         //Update Animations
-        if (IsLocalPlayer && IsClient)
+        if(IsClient)
         {
-            if (Input.GetAxisRaw("Vertical") > 0)
-            {
-                Debug.Log("FORWARD");
-                UpdateAnimator(1);
-            }
-            else if (Input.GetAxisRaw("Vertical") < 0)
-            {
-                UpdateAnimator(2);
-            }
-            else if (Input.GetAxisRaw("Horizontal") > 0)
-            {
-                UpdateAnimator(3);
-            }
-            else if (Input.GetAxisRaw("Horizontal") < 0)
-            {
-                UpdateAnimator(4);
-            }
-            else
-            {
-                UpdateAnimator(0);
-            }
+            myAnime.SetInteger("animState", animState);
         }
     }
 
