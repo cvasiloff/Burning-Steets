@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public class NetworkPlayerController : NetworkComponent
 {
+    public Animator myAnime;
+
     public GameObject Filler;
     public Weapon WepInHand;
     public int MaxWepCount;
@@ -171,7 +173,7 @@ public class NetworkPlayerController : NetworkComponent
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
-            this.GetComponent<MeshRenderer>().enabled = false;
+            this.transform.GetChild(0).GetComponent<SkinnedMeshRenderer>().enabled = false;
         }
 
         if(IsServer)
@@ -186,8 +188,10 @@ public class NetworkPlayerController : NetworkComponent
 
         while (true)
         {
+            
             if(IsLocalPlayer && IsClient)
             {
+                
                 SendCommand("MOVE", Input.GetAxisRaw("Vertical").ToString() + ',' + Input.GetAxisRaw("Horizontal").ToString());
                 SendCommand("ROTATE", cameraX.ToString() + ',' + cameraY.ToString());
 
@@ -235,7 +239,10 @@ public class NetworkPlayerController : NetworkComponent
             yield return new WaitForSeconds(MyCore.MasterTimer); //Master timer is 0.05f
         }
     }
-
+    public void UpdateAnimator(int anim)
+    {
+        myAnime.SetInteger("animState", anim);
+    }
     public void AddWeapon(int ID)
     {
         if(Weapons.Count < MaxWepCount && IsServer)
@@ -259,6 +266,7 @@ public class NetworkPlayerController : NetworkComponent
     {
         MyRig = GetComponent<Rigidbody>();
         MyCam = Camera.main;
+        myAnime = this.GetComponent<Animator>();
         JumpNum = MaxJumpNum;
     }
 
@@ -289,6 +297,32 @@ public class NetworkPlayerController : NetworkComponent
             if(Input.GetButtonUp("Jump"))
             {
                 JumpButtonDown = false;
+            }
+        }
+
+        //Update Animations
+        if (IsLocalPlayer && IsClient)
+        {
+            if (Input.GetAxisRaw("Vertical") > 0)
+            {
+                Debug.Log("FORWARD");
+                UpdateAnimator(1);
+            }
+            else if (Input.GetAxisRaw("Vertical") < 0)
+            {
+                UpdateAnimator(2);
+            }
+            else if (Input.GetAxisRaw("Horizontal") > 0)
+            {
+                UpdateAnimator(3);
+            }
+            else if (Input.GetAxisRaw("Horizontal") < 0)
+            {
+                UpdateAnimator(4);
+            }
+            else
+            {
+                UpdateAnimator(0);
             }
         }
     }

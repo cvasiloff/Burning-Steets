@@ -162,7 +162,7 @@ public class NetworkPlayer : NetworkComponent
         if (IsServer)
         {
             
-            MyCore.NetCreateObject(ModelNum + 1, Owner, new Vector3(-18 + ((Owner * 3)), 88, -112));
+            MyCore.NetCreateObject(ModelNum + 1, Owner, new Vector3(-18 + ((Owner * 3)), 89, -112));
             SendUpdate("PNAME", PNAME);
         }
 
