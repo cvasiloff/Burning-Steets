@@ -225,8 +225,8 @@ public class NetworkPlayerController : NetworkComponent
             if(IsLocalPlayer && IsClient)
             {
                 
-                SendCommand("MOVE", Input.GetAxisRaw("Vertical").ToString() + ',' + Input.GetAxisRaw("Horizontal").ToString());
-                SendCommand("ROTATE", cameraX.ToString() + ',' + cameraY.ToString());
+                SendCommand("MOVE", Input.GetAxisRaw("Vertical").ToString() + ',' + Input.GetAxisRaw("Horizontal").ToString(), false);
+                SendCommand("ROTATE", cameraX.ToString() + ',' + cameraY.ToString(), false);
 
                 if (Input.GetAxisRaw("Jump") > 0 && JumpNum > 0 && !JumpButtonDown)
                 {
@@ -355,15 +355,14 @@ public class NetworkPlayerController : NetworkComponent
             MyCam.transform.position = Vector3.Lerp(MyCam.transform.position, CameraPos.position, 0.2f);
     }
 
-    private void OnCollisionEnter(Collision collision)
+    public void ResetJump()
     {
-        
-        //Put an IsServer check here
-        if(collision.gameObject.tag == "Floor")
-        {
-            JumpNum = MaxJumpNum;
-        }
+        Debug.Log("Jump Resetting!");
+        JumpNum = MaxJumpNum;
+    }
 
+    private void OnCollisionEnter(Collision collision)
+    { 
         //Give the server authority and change teams when it hits the Lobby Team
         if(IsServer)
         {

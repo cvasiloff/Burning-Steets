@@ -93,7 +93,7 @@ public class NetworkPlayer : NetworkComponent
             {
                 if(Owner == int.Parse(value))
                 {
-                    foreach(Transform child in Camera.main.transform)
+                    foreach(Transform child in Camera.main.transform.GetChild(0))
                     {
                         Destroy(child.gameObject);
                     }
