@@ -62,7 +62,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b46e7efca75b83c4d87b8018182492ce, type: 2}
+  - {fileID: 2100000, guid: e54959074915e2b408d9b120319e5334, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -183,8 +183,9 @@ MonoBehaviour:
   MyCore: {fileID: 0}
   MyId: {fileID: 0}
   levels:
-  - 4
-  - 8
-  - 12
+  - 45.4
+  - 47
+  - 49
+  - 52
   canMove: 0
   myRig: {fileID: 0}
