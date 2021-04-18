@@ -507,6 +507,7 @@ public class LobbyManager : GenericNetworkCore
                 Send("PLAYERS#" + g.Value.GameID + "#" + g.Value.CurrentNumberPlayers + "\n", id);
             }
         }
+        Logger("Agent Connected to lobby manager, looking for game!");
     }
     /// <summary>
     /// If an agent is being disconnected then this function cleans up the details.

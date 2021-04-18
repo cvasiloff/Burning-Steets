@@ -235,7 +235,7 @@ public class ExclusiveString : IEnumerable<char>
 public class Connector
 {
     //Used for thread delay
-    public int ThreadTimer = 50;
+    public int ThreadTimer = 25;
 
     //Pointer to ThreadedSocketClass;
     ThreadNetworkSocket NetSystem;
@@ -332,14 +332,14 @@ public class Connector
                 {
                     break;
                 }
-                Thread.Sleep(1);
+                
                 while (TCPMessage.Str.EndsWith("\n") == false)
                 {  
                     int read = TCPSocket.Receive(TCPbuffer, 1024, SocketFlags.None);
                     TCPMessage += ExclusiveString.Parse(Encoding.ASCII.GetString(TCPbuffer));
                     if (TCPMessage.Str == "")
                     {            
-                        Thread.Sleep(5);
+                        Thread.Sleep(ThreadTimer);
                     }
                 }
                 TCPbuffer = new byte[1024];
@@ -464,23 +464,16 @@ public class Connector
                     EndPoint tempUdpEp2 = TCPSocket.RemoteEndPoint;
                     while (UDPMessage.Str.EndsWith("\n") == false)
                     {
-                        try
-                        {
-                            int bytesRead = UDPSocketR.ReceiveFrom(UDPbuffer, 1024, SocketFlags.None, ref tempUdpEp2);
-                        }
-                        catch
-                        {
-                            //UDP socket has been disconnected and disposed.
-                            break;
-                        }
+                        int bytesRead = UDPSocketR.ReceiveFrom(UDPbuffer, 1024, SocketFlags.None, ref tempUdpEp2);
+
                         UDPMessage += ExclusiveString.Parse(Encoding.ASCII.GetString(UDPbuffer));
                         if (UDPMessage.Str == "")
                         {
-                            Thread.Sleep(5);
+                            Thread.Sleep(50);
                         }
-                    }
+                    }                    
                     UDPbuffer = new byte[1024];
-                    if (this.ConnectionID > 0)
+                    if (ConnectionID >= 0 && DidClientRecvId)
                     {
                         UDPRecvCheck = true;
                         while (UDPRecvCheck)
@@ -490,6 +483,7 @@ public class Connector
                     }
                     else
                     {
+                        UDPMessage.ReadAndClear();
                         Thread.Sleep(ThreadTimer);
                     }
                 }
@@ -769,7 +763,7 @@ public class GenericNetworkCore : MonoBehaviour
             if(NoContact)
             { 
                 //If  you cannot connect as a client go back to the main menu scene.
-                string message = "Could not Connect to WAN Lobby Manager!";
+                string message = "Could not Connect to Generic Server!";
                 GenericNetworkCore.Logger(message);
                 yield return new WaitForSeconds(10);
                 SceneManager.LoadScene(0);
@@ -787,7 +781,7 @@ public class GenericNetworkCore : MonoBehaviour
             }
             yield return new WaitUntil(() => IsClient);
             StartCoroutine(OnClientConnect(LocalConnectionID));
-            GenericNetworkCore.Logger("Agent connected to Lobby Manager, looking for a game!");
+            GenericNetworkCore.Logger("Client connected to Generic Server!");
         }
     }
     /// <summary>
@@ -860,7 +854,7 @@ public class GenericNetworkCore : MonoBehaviour
         {
             while (!Connections[ConID].UDPRecvCheck)
             {
-                yield return new WaitForSeconds(.05f);
+                yield return new WaitForSeconds(.015f);
             }
             if (!IsConnected || Connections[ConID] == null)    //This should break...?
             {
@@ -883,7 +877,7 @@ public class GenericNetworkCore : MonoBehaviour
                     }
                 }
             }
-            yield return new WaitForSeconds(.05f);
+            yield return new WaitForSeconds(.015f);
         }
     }
     /// <summary>
@@ -895,10 +889,10 @@ public class GenericNetworkCore : MonoBehaviour
     {
         while(IsConnected)
         {
-            yield return new WaitForSeconds(.05f);
+            yield return new WaitForSeconds(.015f);
             while (!Connections[ConID].TCPRecvCheck)
             {
-                yield return new WaitForSeconds(.05f);
+                yield return new WaitForSeconds(.015f);
             }
             string Command = NetSystem.Connections[ConID].TCPMessage.ReadAndClear();
             Connections[ConID].TCPRecvCheck = false;
@@ -919,7 +913,8 @@ public class GenericNetworkCore : MonoBehaviour
                 {
                     OnHandleMessages(x.Trim());
                 }
-            }   
+            }
+            yield return new WaitForSeconds(.015f);
         }
     }
 

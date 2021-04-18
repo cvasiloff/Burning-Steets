@@ -16,7 +16,7 @@ public class NetworkCore : GenericNetworkCore
     public int ObjectCounter = 0;
     public GameObject[] SpawnPrefab;
     public GameObject NetworkPlayerManager;
-
+    public object ObjLock = new object();
 
     //Connections variables outside of generic network Core
     public int MaxConnections = 100;
@@ -44,7 +44,6 @@ public class NetworkCore : GenericNetworkCore
         MasterMessage = new ExclusiveString();
         UDPMasterMessage.SetData("");
         MasterMessage.SetData("");
-        UsingUDP = false;
     }
     
     /// <summary>
@@ -265,29 +264,31 @@ public class NetworkCore : GenericNetworkCore
         if (IsServer)
         {
             GameObject temp;
-            if (type != -1)
+            lock (ObjLock)
             {
-                temp = GameObject.Instantiate(SpawnPrefab[type], initPos, rotation);
+                if (type != -1)
+                {
+                    temp = GameObject.Instantiate(SpawnPrefab[type], initPos, rotation);
+                }
+                else
+                {
+                    temp = GameObject.Instantiate(NetworkPlayerManager, initPos, rotation);
+                }
+                temp.GetComponent<NetworkID>().Owner = ownMe;
+                temp.GetComponent<NetworkID>().NetId = ObjectCounter;
+                temp.GetComponent<NetworkID>().Type = type;
+                NetObjs.Add(ObjectCounter, temp.GetComponent<NetworkID>());
+                ObjectCounter++;
+                string MSG = "CREATE#" + type + "#" + ownMe +
+                "#" + (ObjectCounter - 1) + "#" + initPos.ToString() + "#" +
+                rotation.eulerAngles.ToString() + "\n";
+                MasterMessage += MSG;
+                foreach (NetworkComponent n in temp.GetComponents<NetworkComponent>())
+                {
+                    //Force update to all clients.
+                    n.IsDirty = true;
+                }
             }
-            else
-            {
-                temp = GameObject.Instantiate(NetworkPlayerManager, initPos, rotation);
-            }
-            temp.GetComponent<NetworkID>().Owner = ownMe;
-            temp.GetComponent<NetworkID>().NetId = ObjectCounter;
-            temp.GetComponent<NetworkID>().Type = type;
-            NetObjs.Add(ObjectCounter,temp.GetComponent<NetworkID>());
-            ObjectCounter++;
-            string MSG = "CREATE#" + type + "#" + ownMe +
-            "#" + (ObjectCounter - 1) + "#" + initPos.ToString() + "#" +
-            rotation.eulerAngles.ToString()+ "\n";
-            MasterMessage += MSG;     
-            foreach (NetworkComponent n in temp.GetComponents<NetworkComponent>())
-            {
-                //Force update to all clients.
-                n.IsDirty = true;
-            }
-            
         return temp;
         }
         else

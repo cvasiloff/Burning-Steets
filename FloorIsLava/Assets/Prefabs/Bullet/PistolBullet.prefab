@@ -119,7 +119,6 @@ MonoBehaviour:
   IsClient: 0
   UpdateFrequency: 0.1
   MyCore: {fileID: 0}
-  GameObjectMessages: 
 --- !u!114 &6467627599081592668
 MonoBehaviour:
   m_ObjectHideFlags: 0

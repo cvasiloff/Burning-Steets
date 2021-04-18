@@ -225,8 +225,8 @@ public class NetworkPlayerController : NetworkComponent
             if(IsLocalPlayer && IsClient)
             {
                 
-                SendCommand("MOVE", Input.GetAxisRaw("Vertical").ToString() + ',' + Input.GetAxisRaw("Horizontal").ToString(), false);
-                SendCommand("ROTATE", cameraX.ToString() + ',' + cameraY.ToString(), false);
+                SendCommand("MOVE", Input.GetAxisRaw("Vertical").ToString() + ',' + Input.GetAxisRaw("Horizontal").ToString());
+                SendCommand("ROTATE", cameraX.ToString() + ',' + cameraY.ToString());
 
                 if (Input.GetAxisRaw("Jump") > 0 && JumpNum > 0 && !JumpButtonDown)
                 {
