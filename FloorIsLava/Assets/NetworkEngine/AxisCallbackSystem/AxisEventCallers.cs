@@ -20,7 +20,7 @@ public class AxisEventCallers : MonoBehaviour
         }
     }
     public event Action OnMove;
-    public void Move()
+    private void Move()
     {
         if (OnMove != null)
         {
@@ -51,44 +51,50 @@ public class AxisEventCallers : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        foreach(string x in WatchedAxis)
+        try
         {
-            if(Input.GetAxis(x) != LastInput[x])
+            foreach (string x in WatchedAxis)
             {
-                if(Mathf.Abs(Input.GetAxis(x))< .1f)
+                if (Input.GetAxis(x) != LastInput[x])
                 {
-                    InputEvents[x].AxisKeyUp();
+                    InputEvents[x].AxisKeyChanged();
+                    if (Mathf.Abs(Input.GetAxis(x)) < .1f)
+                    {
+                        InputEvents[x].AxisKeyUp();
+                    }
+                    else
+                    {
+                        InputEvents[x].AxisKeyDown();
+                    }
+                    LastInput[x] = Input.GetAxis(x);
+                    if (x == "Vertical" || x == "Horizontal")
+                    {
+                        DirChanged = true;
+                    }
                 }
-                else
+                else if (Mathf.Abs(Input.GetAxis(x)) > .1f)
                 {
-                    InputEvents[x].AxisKeyDown();
-                }
-                LastInput[x] = Input.GetAxis(x);
-                if(x == "Vertical" || x == "Horizontal")
-                {
-                    DirChanged = true;
+                    InputEvents[x].AxisKeyStay();
+                    if (x == "Vertical" || x == "Horizontal")
+                    {
+                        IsMoving = true;
+                    }
                 }
             }
-            else if (Mathf.Abs(Input.GetAxis(x)) > .1f)
+            if (DirChanged)
             {
-                InputEvents[x].AxisKeyStay();
-                if (x == "Vertical" || x == "Horizontal")
-                {
-                    IsMoving = true;
-                }
+                DirectionChanged();
+                DirChanged = false;
+            }
+            if (IsMoving)
+            {
+                Move();
+                IsMoving = false;
             }
         }
-        if(DirChanged)
-        {
-            DirectionChanged();
-            DirChanged = false;
+        catch {
+            //Will only happen on scene switch.
         }
-        if(IsMoving)
-        {
-            Move();
-            IsMoving = false;
-        }
- 
 
 
     }

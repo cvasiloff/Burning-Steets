@@ -17,6 +17,61 @@ using NETWORK_ENGINE;
 
 ///<include file='docs.xml' path='./[@name="GenericNetworkEngine"]'/>
 
+public class ProducerConsumerQueue <T>
+{
+    List<T> data;
+    object ListLock;
+    public int Count
+    {
+        get {
+                lock (ListLock)
+                { return data.Count; }
+            }
+    }
+
+    public void Append(T value)
+    {
+        lock(ListLock)
+        {
+            data.Add(value);
+        }
+    }
+
+    public T Consume()
+    {
+        if (Count > 0)
+        {
+            lock(ListLock)
+            {
+                T temp = data[0];
+                data.RemoveAt(0);
+                return temp;
+            }
+        }
+        return default;
+    }
+
+    public bool IsEmpty()
+    {
+        lock(ListLock)
+        {
+            return data.Count == 0;
+        }
+    }
+    public T Peek()
+    {
+        lock(ListLock)
+        {
+            return data[data.Count-1];
+        }
+    }
+    public ProducerConsumerQueue()
+    {
+        data = new List<T>();
+        ListLock = new object();
+    }
+}
+
 /// <summary>
 /// 
 /// </summary>
@@ -235,7 +290,7 @@ public class ExclusiveString : IEnumerable<char>
 public class Connector
 {
     //Used for thread delay
-    public int ThreadTimer = 25;
+    public int ThreadTimer = 15;
 
     //Pointer to ThreadedSocketClass;
     ThreadNetworkSocket NetSystem;
@@ -259,7 +314,7 @@ public class Connector
         set { lock (TCPRecvLock) { TCPRecvCheckBool = value; } }
     }
     public Socket TCPSocket;
-    public ExclusiveString TCPMessage;
+    public ProducerConsumerQueue<string> TCPMessage;
     public byte[] TCPbuffer = new byte[1024]; 
     public bool TCPIsSending = false;
     public int ConnectionID = -1;
@@ -278,13 +333,12 @@ public class Connector
     } 
     public Socket UDPSocketR;
     public Socket UDPSocketS;
-    public ExclusiveString UDPMessage;
+    public ProducerConsumerQueue<string> UDPMessage;
     public byte[] UDPbuffer;
     public bool UsingUDP;
  
     //Connected and Currently Disconnecting variables.
     public bool IsDisconnecting = false;
-    public bool SocketDiscon = false;
     /// <summary>
     /// Constructor
     /// </summary>
@@ -294,11 +348,11 @@ public class Connector
         NetSystem = s;
         TCPRecvLock = new object();
         UsingUDP = udpUse;
-        TCPMessage = new ExclusiveString();
+        TCPMessage = new ProducerConsumerQueue<string>();
         if(UsingUDP)
         {
             UDPRecvLock = new object();
-            UDPMessage = new ExclusiveString();
+            UDPMessage = new ProducerConsumerQueue<string>();
             UDPSocketR = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);     
             UDPSocketS = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             UDPSocketR.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
@@ -332,18 +386,17 @@ public class Connector
                 {
                     break;
                 }
-                
-                while (TCPMessage.Str.EndsWith("\n") == false)
+                int byteRead = -10;
+                string tempMessage = "";
+                while (this.NetSystem.IsConnected && (tempMessage == "" || tempMessage.EndsWith("\n") == false || byteRead == 0))
                 {  
-                    int read = TCPSocket.Receive(TCPbuffer, 1024, SocketFlags.None);
-                    TCPMessage += ExclusiveString.Parse(Encoding.ASCII.GetString(TCPbuffer));
-                    if (TCPMessage.Str == "")
-                    {            
-                        Thread.Sleep(ThreadTimer);
-                    }
+                    byteRead = TCPSocket.Receive(TCPbuffer, 1024, SocketFlags.None);
+                    //TCPMessage.Append(Encoding.ASCII.GetString(TCPbuffer));
+                    tempMessage += Encoding.ASCII.GetString(TCPbuffer);
+                    TCPbuffer = new byte[1024];
                 }
-                TCPbuffer = new byte[1024];
-                string[] tempArgs = TCPMessage.Str.Split('\n');
+                TCPMessage.Append(tempMessage);
+                string[] tempArgs = tempMessage.Split('\n');
                 foreach (string s in tempArgs)
                 {
                     if (s.StartsWith("DISCON"))
@@ -352,8 +405,7 @@ public class Connector
                         {
                             TCP_Send("DISCON\n");
                         }
-                        IsDisconnecting = true;
-                        
+                        IsDisconnecting = true;   
                     }
                     if(s.StartsWith("IDPLEASE")&& this.NetSystem.IsServer)
                     {
@@ -361,8 +413,7 @@ public class Connector
                     }
                     if (s.StartsWith("ID#")&& this.NetSystem.IsClient)
                     {
-                        ConnectionID = int.Parse(s.Split('#')[1].Split('\n')[0]);
-                        
+                        ConnectionID = int.Parse(s.Split('#')[1].Split('\n')[0]);  
                         GenericNetworkCore.Logger("The ID for the  connection is: " + ConnectionID);
                         DidClientRecvId = true;
                         TCP_Send("ID#"+ConnectionID+ "\n");
@@ -389,28 +440,13 @@ public class Connector
                         }
                     }
                 }
-                //This way it will not lock itself out if it does not receive the ID first.
-                if (ConnectionID >= 0 && DidClientRecvId)
-                {
-                    TCPRecvCheck = true;
-                    while (TCPRecvCheck)
-                    {
-                        Thread.Sleep(ThreadTimer);
-                    }
-                }
-                else
-                {
-                    //clear message to allow for another attempt to read ID
-                    TCPMessage.ReadAndClear();
-                    
-                }
+                Thread.Sleep(ThreadTimer);
             }
         }
         catch (SocketException e)
         {
             //Do nothing.  We have disconnected.
             GenericNetworkCore.Logger("Socket Exception: " + e.ToString());
-            SocketDiscon = true;
             IsDisconnecting = true;
         }
     }
@@ -462,30 +498,16 @@ public class Connector
                         break;
                     }
                     EndPoint tempUdpEp2 = TCPSocket.RemoteEndPoint;
-                    while (UDPMessage.Str.EndsWith("\n") == false)
+                    int bytesRead = -10;
+                    string tempMessage = "";
+                    while (this.NetSystem.IsConnected && (tempMessage == "" || tempMessage.EndsWith("\n") == false || bytesRead == 0))
                     {
-                        int bytesRead = UDPSocketR.ReceiveFrom(UDPbuffer, 1024, SocketFlags.None, ref tempUdpEp2);
-
-                        UDPMessage += ExclusiveString.Parse(Encoding.ASCII.GetString(UDPbuffer));
-                        if (UDPMessage.Str == "")
-                        {
-                            Thread.Sleep(50);
-                        }
-                    }                    
-                    UDPbuffer = new byte[1024];
-                    if (ConnectionID >= 0 && DidClientRecvId)
-                    {
-                        UDPRecvCheck = true;
-                        while (UDPRecvCheck)
-                        {
-                            Thread.Sleep(ThreadTimer);
-                        }
+                        bytesRead = UDPSocketR.ReceiveFrom(UDPbuffer, 1024, SocketFlags.None, ref tempUdpEp2);
+                        tempMessage += Encoding.ASCII.GetString(UDPbuffer);
+                        UDPbuffer = new byte[1024];
                     }
-                    else
-                    {
-                        UDPMessage.ReadAndClear();
-                        Thread.Sleep(ThreadTimer);
-                    }
+                    UDPMessage.Append(tempMessage);
+                    //Thread.Sleep(ThreadTimer);
                 }
             }
             catch (SocketException e)
@@ -534,6 +556,7 @@ public class ThreadNetworkSocket
     public bool IsClient;
     public bool IsConnected;
     public bool UsingUDP = true;
+    public int ThreadTimer;
     //IP address and port number
     //Server only uses Port Number
     public string IP;
@@ -543,9 +566,13 @@ public class ThreadNetworkSocket
     public Socket Listener;
     public Thread ThreadListener;
     public GenericNetworkCore GenCore;
+    
+    
     //Connection data structures
     public int ConCounter;
     public ExclusiveDictionary<int, Connector> Connections;
+
+
     /// <summary>
     /// Constructor - Initialize values.
     /// Connections will be initialized on connect.
@@ -591,6 +618,7 @@ public class ThreadNetworkSocket
         {
             Socket Handler = Listener.Accept();
             Connector temp = new Connector(this,UsingUDP);
+            temp.ThreadTimer = ThreadTimer;
             Accept(temp, Handler, ConCounter);
             temp.TCP_Send("ID#" + ConCounter + "\n");
             Thread.Sleep(500);
@@ -638,6 +666,7 @@ public class ThreadNetworkSocket
     {
         Connections = new ExclusiveDictionary<int, Connector>();
         Connector temp = new Connector(this,UsingUDP);
+        temp.ThreadTimer = ThreadTimer;
         Connect(temp,IP, PortNumber);  
         GenCore.LocalConnectionID = temp.ConnectionID;
         Connections.Add(0, temp);   
@@ -651,7 +680,7 @@ public class ThreadNetworkSocket
     {
         IPAddress ipAdd = (IPAddress.Parse(ip));
         IPEndPoint endP = new IPEndPoint(ipAdd, port);
-        c.TCPMessage = new ExclusiveString();
+        //c.TCPMessage = new ExclusiveString();
         c.TCPSocket = new Socket(ipAdd.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
         c.TCPSocket.Connect(endP);
         IsConnected = true;
@@ -660,7 +689,7 @@ public class ThreadNetworkSocket
         c.TCPRecvThread.Start();
         if (UsingUDP)
         {
-            c.UDPMessage = new ExclusiveString();
+            //c.UDPMessage = new ExclusiveString();
             c.UDPSocketS.Connect(endP);
             c.UDPSocketR.Bind(c.TCPSocket.LocalEndPoint);
             c.UDPRecvThread = new Thread(c.UDP_Recv);
@@ -711,7 +740,7 @@ public class GenericNetworkCore : MonoBehaviour
 
     //This is the static string that holds the log.
     public static string SystemLog = "";
-
+    public float MasterTimer = .05f;
     //Console controls.
     //If you set a text box to console in the editor it will display the logs.
     //It will reset the string once it exceeds MaxConsoleLogSize.
@@ -729,6 +758,7 @@ public class GenericNetworkCore : MonoBehaviour
     {
         if (!IsConnected)
         {
+            NetSystem.ThreadTimer = (int)(1000 * MasterTimer);
             NetSystem.GenCore = this;
             NetSystem.IP = IP;
             NetSystem.PortNumber = PortNumber;
@@ -748,6 +778,7 @@ public class GenericNetworkCore : MonoBehaviour
     {
         if (!IsConnected)
         {
+            NetSystem.ThreadTimer = (int)(1000 * MasterTimer);
             NetSystem.GenCore = this;
             NetSystem.IP = IP;
             NetSystem.PortNumber = PortNumber;
@@ -803,6 +834,13 @@ public class GenericNetworkCore : MonoBehaviour
 
             if (IsServer)
             {
+                foreach (KeyValuePair<int, Connector> p in Connections.Copy())
+                {
+                    if(p.Value.IsDisconnecting)
+                    {
+                        StartCoroutine(Disconnect(p.Key));
+                    }
+                }
                 cycleCounter++; 
                 if(cycleCounter %100 == 0)
                 {
@@ -834,13 +872,13 @@ public class GenericNetworkCore : MonoBehaviour
             }
             if(IsClient)
             {
-                if(Connections[0].SocketDiscon)
+                if(Connections[0].IsDisconnecting)
                 {
                     yield return StartCoroutine(Disconnect(LocalConnectionID));
                 }
             }
             OnSlowUpdate();
-            yield return new WaitForSeconds(.05f);
+            yield return new WaitForSeconds(MasterTimer);
         }
     }
     /// <summary>
@@ -852,17 +890,19 @@ public class GenericNetworkCore : MonoBehaviour
     {
         while (IsConnected)
         {
-            while (!Connections[ConID].UDPRecvCheck)
+            string msg = "";
+            while(IsConnected && Connections[ConID].UDPMessage.Count >0)
             {
-                yield return new WaitForSeconds(.015f);
+                msg += Connections[ConID].UDPMessage.Consume();
             }
+
+           
             if (!IsConnected || Connections[ConID] == null)    //This should break...?
             {
                  break;
             }
-            string Command = Connections[ConID].UDPMessage.ReadAndClear();
-            Connections[ConID].UDPRecvCheck = false;
-            string[] args = Command.Split('\n');
+           
+            string[] args = msg.Split('\n');
             foreach(string x in args)
             {
                 if (x.Trim() != null)
@@ -877,7 +917,7 @@ public class GenericNetworkCore : MonoBehaviour
                     }
                 }
             }
-            yield return new WaitForSeconds(.015f);
+            yield return new WaitForSeconds(MasterTimer);
         }
     }
     /// <summary>
@@ -889,32 +929,33 @@ public class GenericNetworkCore : MonoBehaviour
     {
         while(IsConnected)
         {
-            yield return new WaitForSeconds(.015f);
-            while (!Connections[ConID].TCPRecvCheck)
+            string msg = "";
+            while (IsConnected && Connections[ConID].TCPMessage.Count > 0)
             {
-                yield return new WaitForSeconds(.015f);
+                msg += Connections[ConID].TCPMessage.Consume();
             }
-            string Command = NetSystem.Connections[ConID].TCPMessage.ReadAndClear();
-            Connections[ConID].TCPRecvCheck = false;
-            string[] args = Command.Split('\n');
-            foreach(string x in args)
-            {
-                if(x.Contains("DISCON"))
-                {
-                    StartCoroutine(Disconnect(Connections[ConID].ConnectionID));
-                    yield break;
-                }
-                if (x.StartsWith("ID#"))
-                {
-                    LocalConnectionID = int.Parse(x.Split('#')[1]);
-                }
 
-                if (x.Trim() != "")
+            if (!IsConnected || Connections[ConID] == null)    //This should break...?
+            {
+                break;
+            }
+
+            string[] args = msg.Split('\n');
+            foreach (string x in args)
+            {
+                if (x.Trim() != null)
                 {
-                    OnHandleMessages(x.Trim());
+                    try
+                    {
+                        OnHandleMessages(x);
+                    }
+                    catch
+                    {
+                        GenericNetworkCore.Logger("UDP malformed a packet.");
+                    }
                 }
             }
-            yield return new WaitForSeconds(.015f);
+            yield return new WaitForSeconds(MasterTimer);
         }
     }
 
@@ -973,13 +1014,14 @@ public class GenericNetworkCore : MonoBehaviour
                     }
      
             } 
-            NetSystem.Disconnect();
+           
             if(Connections[0] == null)
             {
                 yield break;
             }
-            StartCoroutine(OnClientDisconnect(id));
-            yield return StartCoroutine(SocketCloser(0));  
+            yield return StartCoroutine(OnClientDisconnect(id));
+            yield return StartCoroutine(SocketCloser(0));
+            NetSystem.Disconnect();
             Connections.Clear();
             LocalConnectionID = -10;
             NetSystem.IsConnected = false;
@@ -992,16 +1034,19 @@ public class GenericNetworkCore : MonoBehaviour
             {
                 Connections[id].TCP_Send("DISCON\n");
                 int TimeOut = 10;
-                while (Connections[id].IsDisconnecting == false)
+
+                while (Connections.ContainsKey(id) && Connections[id].IsDisconnecting == false)
                 {
                     GenericNetworkCore.Logger("Waiting to get approval for disconnect.");
                     yield return new WaitForSeconds(.1f);
                     TimeOut--;
-                    if(TimeOut <=0)
+                    if (TimeOut <= 0)
                     {
                         break;
                     }
                 }
+           
+    
             }
             StartCoroutine(OnClientDisconnect(id));
             yield return StartCoroutine(SocketCloser(id));
@@ -1053,15 +1098,24 @@ public class GenericNetworkCore : MonoBehaviour
     /// <returns>True if successful, false if an exception occured.</returns>
     private IEnumerator SocketCloser(int id)
     {
+        if (Connections[id] == null)
+        {
+            yield break;
+        }
 
-            Connections[id].TCPRecvThread.Abort();
-            StopCoroutine(Connections[id].MessageHandler);
-            while(Connections[id].TCPRecvThread.ThreadState == 0)
+        try
+            {
+                Connections[id].TCPRecvThread.Abort();
+                StopCoroutine(Connections[id].MessageHandler);
+            }
+        catch
+            { }
+            while (Connections[id] != null && Connections[id].TCPRecvThread.ThreadState == 0)
             {
                 GenericNetworkCore.Logger("Trying to close the TCPRecv thread on connections: " + id.ToString());
                 yield return new WaitForSeconds(.2f);
             }
-            if (Connections[id].UsingUDP)
+            if (Connections[id] != null && Connections[id].UsingUDP)
             {
                 lock (Connections[id].UPDSendLock)
                 {
@@ -1072,12 +1126,18 @@ public class GenericNetworkCore : MonoBehaviour
                         GenericNetworkCore.Logger("Trying to close the UDPRecv thread on connections: " + id.ToString());
                         yield return new WaitForSeconds(.2f);
                     }
-                    Connections[id].UDPSocketR.Dispose(); 
+                try
+                {
+                    Connections[id].UDPSocketR.Dispose();
                     Connections[id].UDPSocketS.Dispose();
                     Connections[id].UDPSocketS = null;
-                    Connections[id].UDPSocketR = null; 
+                    Connections[id].UDPSocketR = null;
+                }
+                catch
+                { }
                 }
             }
+
             lock (Connections[id].TCPSendLock)
             {
                 try
@@ -1198,7 +1258,10 @@ public class GenericNetworkCore : MonoBehaviour
         SystemLog += System.DateTime.Now.ToString() + ": " + msg + "\n";
     }
 
-
+    public virtual IEnumerator MenuManager()
+    {
+        yield break;
+    }
 
     //-------------------------------------------------------------UI Call back functions ------------------------------------------------
     /// <summary>
@@ -1206,14 +1269,19 @@ public class GenericNetworkCore : MonoBehaviour
     /// </summary>
     public void UI_Quit()
     {
-        if (IsClient)
+        if (IsConnected)
         {
-            StartCoroutine(Disconnect(Connections[0].ConnectionID, true));
+            if (IsClient)
+            {
+                StartCoroutine(Disconnect(Connections[0].ConnectionID, true));
+            }
+            if (IsServer)
+            {
+                StartCoroutine(DisconnectServer());
+
+            }
         }
-        if(IsServer)
-        {
-            StartCoroutine(DisconnectServer());
-        }
+        
     }
     /// <summary>
     /// UI callback to start the client.

@@ -31,6 +31,15 @@ public class AxisEventSystem //: MonoBehaviour
         }
     }
 
+    public event Action OnAxisKeyChanged;
+    public void AxisKeyChanged()
+    {
+        if(OnAxisKeyChanged != null)
+        {
+            OnAxisKeyChanged();
+        }
+    }
+
     /*
 
     // Start is called before the first frame update

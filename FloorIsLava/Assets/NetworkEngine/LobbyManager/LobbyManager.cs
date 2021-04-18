@@ -169,6 +169,7 @@ public class LobbyManager : GenericNetworkCore
                 }
                 if(ping.time >0)
                 {
+
                     IP = FloridaPolyIP;
                 }
             }
@@ -199,7 +200,6 @@ public class LobbyManager : GenericNetworkCore
     public virtual void OnSceneExit(Scene x)
     {
         SceneManager.sceneUnloaded -= OnSceneExit;
-        UI_Quit();
     }
     /// <summary>
     /// This function will start the Lobby Manager Master (server)
@@ -476,7 +476,7 @@ public class LobbyManager : GenericNetworkCore
     /// Most likely should be overwritten.  Function is virtual.
     /// </summary>
     /// <returns>IENumerators to allow for delays.</returns>
-    public virtual IEnumerator MenuManager()
+    public override IEnumerator MenuManager()
     {
         this.transform.GetChild(0).GetChild(1).gameObject.SetActive(true);
         this.transform.GetChild(0).GetChild(0).gameObject.SetActive(false);
@@ -518,10 +518,12 @@ public class LobbyManager : GenericNetworkCore
     public override IEnumerator OnClientDisconnect(int id)
     {   
        if(MyCore.IsConnected && IsGameServer)
-        {       
+        {
+            Debug.Log("Trying to disconnect the game server!");    
             yield return StartCoroutine(MyCore.DisconnectServer());
+           
         }
-       if(IsMaster)
+        else if(IsMaster)
         {
             int badGameID = -1;
             foreach(KeyValuePair<int,GameRoom> x in Lobbies)
@@ -558,7 +560,6 @@ public class LobbyManager : GenericNetworkCore
     /// <param name="id">ID of the agent that was disconnected.</param>
     public override void OnClientDisconnectCleanup(int id)
     {
-
         //I should go through games first...
 
         if (IsGameServer)

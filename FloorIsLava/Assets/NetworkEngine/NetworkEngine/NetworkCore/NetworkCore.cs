@@ -26,7 +26,7 @@ public class NetworkCore : GenericNetworkCore
     }
 
     //Control Variables
-    public float MasterTimer = .05f;
+
     public ExclusiveString MasterMessage;
     public ExclusiveString UDPMasterMessage;
     public int ConCounter
@@ -44,6 +44,7 @@ public class NetworkCore : GenericNetworkCore
         MasterMessage = new ExclusiveString();
         UDPMasterMessage.SetData("");
         MasterMessage.SetData("");
+        UsingUDP = false;
     }
     
     /// <summary>
@@ -82,6 +83,13 @@ public class NetworkCore : GenericNetworkCore
             yield return new WaitForSeconds(.1f);
             NetCreateObject(-1, id);
         }
+        if(IsClient)
+        {
+            if(GameObject.FindObjectOfType<LobbyManager>()== null)
+            {
+                StartCoroutine(MenuManager());
+            }
+        }
     }
     /// <summary>
     /// This will remove all game objects for the player who is disconnecting.
@@ -102,10 +110,21 @@ public class NetworkCore : GenericNetworkCore
     /// <param name="id">ID of the client whos connection has been ended</param>
     public override void OnClientDisconnectCleanup(int id)
     {
-        if (GameObject.FindObjectOfType<LobbyManager>() != null && !GameObject.FindObjectOfType<LobbyManager>().IsMaster)
+        if (IsServer)
         {
-            GameObject.FindObjectOfType<LobbyManager>().UI_Quit();
-        }   
+
+        }
+        if(!IsConnected)
+        {
+            if (GameObject.FindObjectOfType<LobbyManager>() != null)
+            {
+                GameObject.FindObjectOfType<LobbyManager>().UI_Quit();
+            }
+            else
+            {
+                SceneManager.LoadScene(0);
+            }
+        }
     }
     /// <summary>
     /// This will gather all messages that need to be sent form the NetworkIdentities
@@ -114,40 +133,48 @@ public class NetworkCore : GenericNetworkCore
     /// </summary>
     public override void OnSlowUpdate()
     {
-
+        List<string> UDPMasterStringList = new List<string>();
         foreach (KeyValuePair<int, NetworkID> id in NetObjs)
         {
             //Add their message to the masterMessage (the one we send)
             MasterMessage += id.Value.GameObjectMessages.ReadAndClear() + "\n";
-            UDPMasterMessage += id.Value.UDPGameObjectMessages.ReadAndClear() + "\n";
+            UDPMasterStringList.Add(id.Value.UDPGameObjectMessages.ReadAndClear() + "\n");
         }
         //Send Master Message
         List<int> bad = new List<int>();
-        if (MasterMessage.Str != "")
+
+        string msgToSend = MasterMessage.ReadAndClear();
+        //string UDPmsgToSend = UDPMasterMessage.ReadAndClear();
+        foreach (KeyValuePair<int, Connector> item in Connections)
         {
-            string msgToSend = MasterMessage.ReadAndClear();
-            string UDPmsgToSend = UDPMasterMessage.ReadAndClear();
-            foreach (KeyValuePair<int, Connector> item in Connections)
+            try
             {
-                try
+                //This will send all of the information to the client (or to the server if on a client).
+                if (msgToSend.Trim() != "")
                 {
-                    //This will send all of the information to the client (or to the server if on a client).
                     Send(msgToSend, item.Key);
-                    Send(UDPmsgToSend, item.Key, false);
                 }
-                catch (System.Exception e)
+                foreach (string msg in UDPMasterStringList)
                 {
-                    GenericNetworkCore.Logger("Exception occured in slow update: " + e.ToString());
-                    bad.Add(item.Key);
+                    if (msg.Trim() != "")
+                    {
+                        Send(msg, item.Key, false);
+                    }
                 }
             }
-            //MasterMessage.SetData("");//delete old values.
-            foreach (int i in bad)
+            catch (System.Exception e)
             {
-                GenericNetworkCore.Logger("We are disconecting Connection " + i.ToString()+" from "+name+":"+this.GetType().ToString());
-                this.Disconnect(i);
+                GenericNetworkCore.Logger("Exception occured in slow update: " + e.ToString());
+                bad.Add(item.Key);
             }
         }
+        //MasterMessage.SetData("");//delete old values.
+        foreach (int i in bad)
+        {
+            GenericNetworkCore.Logger("We are disconecting Connection " + i.ToString()+" from "+name+":"+this.GetType().ToString());
+            this.Disconnect(i);
+        }
+        
     }
     /// <summary>
     /// This function get's called from TCP and UDP receive functions.
@@ -377,6 +404,21 @@ public class NetworkCore : GenericNetworkCore
     public virtual void OnGameStarted()
     {
 
+    }
+
+    public override void OnServerDisconnectCleanup()
+    {
+        if(GameObject.FindObjectOfType<LobbyManager>() == null)
+        {
+            SceneManager.LoadScene(0);
+        }
+    }
+
+    public override IEnumerator MenuManager()
+    {      
+        yield return new WaitUntil(() => IsConnected);
+        this.transform.GetChild(0).gameObject.SetActive(false);
+        //Going to assume client will return to lobby when done.
     }
 
 }

@@ -539,7 +539,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 378318156}
   m_Direction: 2
   m_Value: 1
-  m_Size: 0.6046173
+  m_Size: 0.39485213
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -1970,8 +1970,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1658902906}
   m_HandleRect: {fileID: 1658902905}
   m_Direction: 0
-  m_Value: 0.4962591
-  m_Size: 0.99909294
+  m_Value: 0.4962099
+  m_Size: 0.9988631
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -2783,8 +2783,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1904947442}
   m_HandleRect: {fileID: 1904947441}
   m_Direction: 2
-  m_Value: 0.99988943
-  m_Size: 0.041931413
+  m_Value: 0.9998893
+  m_Size: 0.026822958
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -3076,6 +3076,7 @@ GameObject:
   - component: {fileID: 2124650040}
   - component: {fileID: 2124650038}
   - component: {fileID: 2124650039}
+  - component: {fileID: 2124650041}
   m_Layer: 0
   m_Name: WANNetworkManager
   m_TagString: Untagged
@@ -3099,7 +3100,7 @@ MonoBehaviour:
   PortNumber: 9000
   LocalConnectionID: -1
   Console: {fileID: 1649974887}
-  PublicIP: 158.0.0.1
+  PublicIP: 71.44.212.54
   FloridaPolyIP: 10.200.208.192
   MyCore: {fileID: 0}
   LocalGameID: -10
@@ -3122,7 +3123,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 2124650037}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8b72af4f8e9ec7a4db02afd568bca8b5, type: 3}
+  m_Script: {fileID: 11500000, guid: faa3c0b1ce93b53448f5d6edda383bee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   IP: 127.0.0.1
@@ -3131,7 +3132,7 @@ MonoBehaviour:
   Console: {fileID: 0}
   ObjectCounter: 0
   SpawnPrefab: []
-  NetworkPlayerManager: {fileID: 6920984598370276211, guid: 0816eb0432e39d54396168934ebf0a59,
+  NetworkPlayerManager: {fileID: 3620981675812213332, guid: b692e20c6dddc2b4f957a7a1ab90fb2b,
     type: 3}
   MaxConnections: 100
   MasterTimer: 0.05
@@ -3151,3 +3152,22 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2124650041
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2124650037}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84338f6b4a22252498cfad0e00a4f10c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  WatchedAxis:
+  - Horizontal
+  - Vertical
+  - Jump
+  - Fire1
+  DirChanged: 0
+  IsMoving: 0

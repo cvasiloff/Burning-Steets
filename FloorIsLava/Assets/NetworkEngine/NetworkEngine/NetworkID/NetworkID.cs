@@ -79,10 +79,13 @@ namespace NETWORK_ENGINE
                 }
                 else
                 {
-                    NetId = MyCore.ObjectCounter;
-                    MyCore.ObjectCounter++;
-                    Owner = -1;
-                    MyCore.NetObjs.Add(NetId, this);
+                    lock (MyCore.ObjLock)
+                    {
+                        NetId = MyCore.ObjectCounter;
+                        MyCore.ObjectCounter++;
+                        Owner = -1;
+                        MyCore.NetObjs.Add(NetId, this);
+                    }
                 }
             }
 
