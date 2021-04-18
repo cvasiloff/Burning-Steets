@@ -23,7 +23,7 @@ public class CrateScript : NetworkComponent
         if(IsServer && switched >= 1)
         {
             switched -= 1;
-            GameObject temp = MyCore.NetCreateObject(6, this.Owner, this.transform.position);
+            GameObject temp = MyCore.NetCreateObject(9, this.Owner, this.transform.position);
             MyCore.NetDestroyObject(this.NetId);
         }
     }
@@ -38,6 +38,6 @@ public class CrateScript : NetworkComponent
 
     public override void HandleMessage(string flag, string value)
     {
-        throw new System.NotImplementedException();
+        
     }
 }

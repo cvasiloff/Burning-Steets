@@ -38,7 +38,7 @@ public class PlaneControlScript : NetworkComponent
             }
             else if (boxSpawn && IsServer)
             {
-                GameObject temp = MyCore.NetCreateObject(5, this.Owner, this.transform.position + new Vector3(0, -1, 0));
+                GameObject temp = MyCore.NetCreateObject(8, this.Owner, this.transform.position + new Vector3(0, -1, 0));
                 boxSpawn = false;
             }
             yield return new WaitForSeconds(5);
