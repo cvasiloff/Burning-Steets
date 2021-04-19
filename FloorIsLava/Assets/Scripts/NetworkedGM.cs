@@ -57,10 +57,19 @@ public class NetworkedGM : NetworkComponent
             else
                 scoreTeamGreen += int.Parse(args[1]);
 
+            if (MyPlayers.Length > 1)
+            {
+                foreach (NetworkPlayer c in MyPlayers)
+                {
+                    if(c.IsLocalPlayer)
+                    {
+                        NetworkPlayerController temp = c.GetComponent<NetworkPlayerController>();
+                        temp.ScorePanel.transform.GetChild(1).GetComponent<Text>().text = scoreTeamRed.ToString();
+                        temp.ScorePanel.transform.GetChild(1).GetComponent<Text>().text = scoreTeamGreen.ToString();
+                    }
+                }
+            }
         }
-            
-
-
     }
 
     public override IEnumerator SlowUpdate()

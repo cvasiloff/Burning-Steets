@@ -264,6 +264,7 @@ MonoBehaviour:
   MyCore: {fileID: 0}
   MyId: {fileID: 0}
   IsAvalible: 1
+  RespawnTimer: 10
   ContainedItem: {fileID: 4428669285509953546, guid: 729c578c96347e146985753cbab6bf09,
     type: 3}
   MyRig: {fileID: 0}

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Weapon : MonoBehaviour
 {
@@ -55,6 +56,11 @@ public class Weapon : MonoBehaviour
         }
     }
 
+    public void Reload()
+    {
+        CurrentAmmo = MaxAmmo;
+    }
+
     //call this function for when the player picks up the weapon for the first time this life
     public void OnPickUp() 
     {
@@ -80,5 +86,9 @@ public class Weapon : MonoBehaviour
         CurrentAmmo--;
         CanShoot = false;
         StartCoroutine(FireDelay());
+        if(MyController.IsLocalPlayer)
+        {
+            MyController.AmmoPanel.transform.GetChild(1).GetComponent<Text>().text = CurrentAmmo.ToString();
+        }
     }
 }

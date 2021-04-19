@@ -6,6 +6,7 @@ using NETWORK_ENGINE;
 public class ItemContainer : NetworkComponent
 {
     public bool IsAvalible;
+    public float RespawnTimer;
     public GameObject ContainedItem;
     public Rigidbody MyRig;
     public Transform ItemPosition;
@@ -14,7 +15,25 @@ public class ItemContainer : NetworkComponent
 
     public override void HandleMessage(string flag, string value)
     {
-        
+        if(flag == "USED")
+        {
+            IsAvalible = false;
+            MyRig.gameObject.SetActive(false);
+        }
+
+        if(flag == "READY")
+        {
+            IsAvalible = true;
+            MyRig.gameObject.SetActive(true);
+        }
+    }
+
+    public IEnumerator ItemRespawn(float Timer)
+    {
+        yield return new WaitForSeconds(Timer);
+        IsAvalible = true;
+        MyRig.gameObject.SetActive(true);
+        SendUpdate("READY", "1");
     }
 
     public override IEnumerator SlowUpdate()
@@ -52,7 +71,9 @@ public class ItemContainer : NetworkComponent
             {
                 collision.gameObject.GetComponent<NetworkPlayerController>().AddWeapon(ContainedItem.GetComponent<Weapon>().ItemID);
             }
+            SendUpdate("USED", "1");
             MyRig.gameObject.SetActive(false);
+            StartCoroutine(ItemRespawn(RespawnTimer));
         }
     }
 }
