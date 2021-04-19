@@ -9,6 +9,10 @@ public class NetworkPlayerController : NetworkComponent
     public Animator myAnime;
     public int animState = 0;
 
+    public GameObject WeaponPanel;
+    public GameObject AmmoPanel;
+    public GameObject ScorePanel;
+
     public GameObject Filler;
     public Weapon WepInHand;
     public int MaxWepCount;
@@ -38,10 +42,16 @@ public class NetworkPlayerController : NetworkComponent
     private float minY = -60f;
     private float maxY = 60f;
 
+    private KeyCode[] keyCodes = {
+         KeyCode.Alpha1,
+         KeyCode.Alpha2,
+         KeyCode.Alpha3,
+         KeyCode.Alpha4,
+         KeyCode.Alpha5,
+     };
+
     public override void HandleMessage(string flag, string value)
     {
-
-
         if (flag == "MOVE" && IsServer)
         {
             string[] args = value.Split(',');
@@ -92,9 +102,7 @@ public class NetworkPlayerController : NetworkComponent
                             break;
                     }
                     break;
-
-            }
-            
+            }  
         }
 
         if (flag == "ROTATE" && IsServer)
@@ -149,8 +157,30 @@ public class NetworkPlayerController : NetworkComponent
 
         if(flag == "ADDWEP")
         {
-            Weapons.Add(int.Parse(value));
-            WeaponParent.transform.GetChild(int.Parse(value)).GetComponent<Weapon>().OnPickUp();
+            if(Weapons.Contains(int.Parse(value)))
+            {
+                if (WepInHand.ItemID == int.Parse(value))
+                {
+                    WepInHand.Reload();
+                }
+                else
+                {
+                    WeaponParent.transform.GetChild(int.Parse(value)).GetComponent<Weapon>().Reload();
+                }
+            }
+            else
+            {
+                Weapons.Add(int.Parse(value));
+                WeaponParent.transform.GetChild(int.Parse(value)).GetComponent<Weapon>().OnPickUp();
+                int UINum = int.Parse(value) * 3;
+
+                if (IsLocalPlayer)
+                {
+                    WeaponPanel.transform.GetChild(UINum).gameObject.SetActive(true);
+                    WeaponPanel.transform.GetChild(UINum + 1).gameObject.SetActive(true);
+                    WeaponPanel.transform.GetChild(UINum + 2).gameObject.SetActive(true);
+                }
+            }
         }
 
         if(flag == "SWITCHWEP")
@@ -171,6 +201,9 @@ public class NetworkPlayerController : NetworkComponent
             {
                 WepInHand.transform.SetParent(MyCam.transform.GetChild(0));
                 Filler.transform.SetSiblingIndex(int.Parse(value));
+
+                AmmoPanel.transform.GetChild(0).GetComponent<Text>().text = WepInHand.ItemName;
+                AmmoPanel.transform.GetChild(1).GetComponent<Text>().text = WepInHand.CurrentAmmo.ToString();
             }
 
             if (IsServer)
@@ -207,24 +240,26 @@ public class NetworkPlayerController : NetworkComponent
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
             this.transform.GetChild(0).GetComponent<SkinnedMeshRenderer>().enabled = false;
+            WeaponPanel.transform.parent.gameObject.SetActive(true);
         }
 
-        if(IsServer)
+        yield return new WaitForSeconds(0.3f);
+
+        if (IsServer)
         {
             AddWeapon(0);
-        }
+        } 
 
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.3f);
 
-        if(IsLocalPlayer)
+        if (IsLocalPlayer)
             SwitchWeapon(0);
 
         while (true)
         {
-            
-            if(IsLocalPlayer && IsClient)
+
+            if (IsLocalPlayer && IsClient)
             {
-                
                 SendCommand("MOVE", Input.GetAxisRaw("Vertical").ToString() + ',' + Input.GetAxisRaw("Horizontal").ToString(), false);
                 SendCommand("ROTATE", cameraX.ToString() + ',' + cameraY.ToString(), false);
 
@@ -235,23 +270,44 @@ public class NetworkPlayerController : NetworkComponent
                     JumpNum--;
                 }
 
-                if(Input.GetMouseButton(0))
+                if (Input.GetAxisRaw("Fire1") != 0)
                 {
                     WepInHand.TryFire();
                 }
 
-                if(Input.GetKey("1"))
+                if (Input.inputString != "")
                 {
-                    SwitchWeapon(0);
+                    bool IsNum = int.TryParse(Input.inputString, out int num);
+                    if (IsNum && num > 0 && num < 6)
+                    {
+                        SwitchWeapon(num - 1);
+                    }
                 }
-                if (Input.GetKey("2"))
+
+                for (int i = 0; i < keyCodes.Length; i++)
                 {
-                    SwitchWeapon(1);
+                    if (Input.GetKey(keyCodes[i]))
+                    {
+                        SwitchWeapon(i);
+                        break;
+                    }
                 }
             }
 
+            if (IsLocalPlayer)
+            {
+                for(int i = 0; i < WeaponPanel.transform.childCount; i += 3)
+                {
+                    if(Weapons.Contains(i/3) && WeaponParent.transform.GetChild(i / 3).GetComponent<Weapon>() != null)
+                    {
+                        //Debug.Log("test");
+                        WeaponPanel.transform.GetChild(i + 2).GetComponent<Text>().text = WeaponParent.transform.GetChild(i / 3).GetComponent<Weapon>().CurrentAmmo.ToString();
+                    }
+                }   
+            }
+
             //IfClient...
-            if(IsServer)
+            if (IsServer)
             {
                 if(IsLaunched)
                 {
@@ -274,12 +330,23 @@ public class NetworkPlayerController : NetworkComponent
     }
     public void UpdateAnimator(int anim)
     {
-        animState = anim;
-        
+        animState = anim; 
     }
     public void AddWeapon(int ID)
     {
-        if(Weapons.Count < MaxWepCount && IsServer)
+        if (Weapons.Contains(ID) && IsServer)
+        {
+            if(WepInHand.ItemID == ID)
+            {
+                WepInHand.Reload();
+            }
+            else
+            {
+                WeaponParent.transform.GetChild(ID).GetComponent<Weapon>().Reload();
+            }
+            SendUpdate("ADDWEP", ID.ToString());
+        }
+        else if (Weapons.Count < MaxWepCount && IsServer)
         {
             Weapons.Add(ID);
             WeaponParent.transform.GetChild(ID).GetComponent<Weapon>().OnPickUp();

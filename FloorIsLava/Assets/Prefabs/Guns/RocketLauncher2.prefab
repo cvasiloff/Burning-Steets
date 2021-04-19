@@ -135,4 +135,4 @@ MonoBehaviour:
   Projectile: {fileID: 6464106280785595606, guid: dd5cfaafff79d5048a6e0572658e6fad,
     type: 3}
   ItemID: 1
-  ItemName: 
+  ItemName: Rocket
