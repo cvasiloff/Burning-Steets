@@ -77,12 +77,13 @@ public class NetworkedGM : NetworkComponent
         lava = GameObject.FindObjectOfType<Lava>();
         if (IsClient)
         {
+            //Hide Connection Page from clients
             GameObject.FindGameObjectWithTag("NetworkManager").transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
         }
 
         while(!GameReady && IsClient)
         {
-            
+            //Client shouldn't do anything until the game starts
             yield return new WaitForSeconds(.2f);
         }
 
@@ -96,7 +97,7 @@ public class NetworkedGM : NetworkComponent
                 bool testReady = true;
                 
                 MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
-                if(MyPlayers.Length > 1)
+                if(MyPlayers.Length > 4)
                 {
                     foreach (NetworkPlayer c in MyPlayers)
                     {
@@ -107,7 +108,6 @@ public class NetworkedGM : NetworkComponent
                         }
                     }
 
-                    //If testready and countdown timer is done
                     if(testReady)
                     {
                         GameReady = true;
@@ -121,6 +121,7 @@ public class NetworkedGM : NetworkComponent
                 yield return new WaitForSeconds(.2f);
             }
             SendUpdate("GAMESTART", "1");
+            GameObject.FindGameObjectWithTag("NetworkManager").GetComponent<LobbyManager>().NotifyGameStarted();
 
 
 

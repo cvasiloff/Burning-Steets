@@ -67,6 +67,11 @@ public class NetworkPlayer : NetworkComponent
         if(flag == "TEAM" && IsClient)
         {
             Team = value;
+            int modelNum = 11;
+            if (value == "RED")
+                modelNum = 11;
+            else
+                modelNum = 12;
         }
 
         if (flag == "SETTEAM")
@@ -118,10 +123,6 @@ public class NetworkPlayer : NetworkComponent
         Team = team;
     }
 
-    void SetTeam()
-    {
-
-    }
 
     public override IEnumerator SlowUpdate()
     {
@@ -162,7 +163,7 @@ public class NetworkPlayer : NetworkComponent
         if (IsServer)
         {
             
-            MyCore.NetCreateObject(ModelNum + 1, Owner, new Vector3(-18 + ((Owner * 3)), 89, -112));
+            MyCore.NetCreateObject(11, Owner, new Vector3(-18 + ((Owner * 3)%10), 89, -112));
             SendUpdate("PNAME", PNAME);
         }
 

@@ -8,6 +8,7 @@ public class NetworkPlayerController : NetworkComponent
 {
     public Animator myAnime;
     public int animState = 0;
+    public Canvas MyName;
 
     public GameObject WeaponPanel;
     public GameObject AmmoPanel;
@@ -114,8 +115,8 @@ public class NetworkPlayerController : NetworkComponent
 
         if (flag == "PNAME")
         {
-            Debug.Log(this.transform.GetChild(0).GetChild(0).GetComponent<Text>().text);
-            this.transform.GetChild(0).GetChild(0).GetComponent<Text>().text = value;
+            
+            this.transform.GetChild(7).GetChild(0).GetComponent<Text>().text = value;
         }
 
         if (flag == "COLOR")
@@ -365,6 +366,7 @@ public class NetworkPlayerController : NetworkComponent
     // Start is called before the first frame update
     void Start()
     {
+        MyName = this.transform.GetChild(7).GetComponent<Canvas>();
         MyRig = GetComponent<Rigidbody>();
         MyCam = Camera.main;
         myAnime = this.GetComponent<Animator>();
@@ -383,8 +385,14 @@ public class NetworkPlayerController : NetworkComponent
     // Update is called once per frame
     void Update()
     {
+        if(IsClient && !IsLocalPlayer)
+        {
+            MyName.transform.LookAt(MyCam.transform);
+        }
         if (IsLocalPlayer && IsClient)
         {
+            
+
             mRotationX = Input.GetAxisRaw("Mouse X") * sensitivity;
 
             mRotationY = Input.GetAxisRaw("Mouse Y") * sensitivity;
