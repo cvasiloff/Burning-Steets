@@ -32,7 +32,7 @@ Transform:
   m_GameObject: {fileID: 2141205203417669391}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 14.21, y: -0.62, z: -0.58}
-  m_LocalScale: {x: 5, y: 0.2, z: 5}
+  m_LocalScale: {x: 200, y: 0.2, z: 200}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -62,7 +62,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b46e7efca75b83c4d87b8018182492ce, type: 2}
+  - {fileID: 2100000, guid: e54959074915e2b408d9b120319e5334, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -120,7 +120,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 2141205203417669391}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1245fa9dfe2c47a4ba554d698f69f343, type: 3}
+  m_Script: {fileID: 11500000, guid: f34ca87a457962d459c49c36b9753ca5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Type: 0
@@ -132,7 +132,6 @@ MonoBehaviour:
   IsClient: 0
   UpdateFrequency: 0.1
   MyCore: {fileID: 0}
-  GameObjectMessages: 
 --- !u!114 &8255669937272857369
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -184,8 +183,9 @@ MonoBehaviour:
   MyCore: {fileID: 0}
   MyId: {fileID: 0}
   levels:
-  - 4
-  - 8
-  - 12
+  - 45.4
+  - 47
+  - 49
+  - 52
   canMove: 0
   myRig: {fileID: 0}

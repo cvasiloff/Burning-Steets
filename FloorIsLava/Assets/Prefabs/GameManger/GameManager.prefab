@@ -41,7 +41,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 719092653263148600}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1245fa9dfe2c47a4ba554d698f69f343, type: 3}
+  m_Script: {fileID: 11500000, guid: f34ca87a457962d459c49c36b9753ca5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Type: 0
@@ -53,7 +53,6 @@ MonoBehaviour:
   IsClient: 0
   UpdateFrequency: 0.1
   MyCore: {fileID: 0}
-  GameObjectMessages: 
 --- !u!114 &3840460219687917982
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -76,5 +75,9 @@ MonoBehaviour:
   MyCore: {fileID: 0}
   MyId: {fileID: 0}
   MyPlayers: []
-  scoreTeam1: 0
-  scoreTeam2: 0
+  TeamRedSpawn: []
+  TeamGreenSpawn: []
+  scoreTeamRed: 0
+  scoreTeamGreen: 0
+  newControlPoint: []
+  currControlPoint: 0

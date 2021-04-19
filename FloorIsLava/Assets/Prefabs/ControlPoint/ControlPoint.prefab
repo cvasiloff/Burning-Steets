@@ -287,7 +287,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3035509360632028996}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1245fa9dfe2c47a4ba554d698f69f343, type: 3}
+  m_Script: {fileID: 11500000, guid: f34ca87a457962d459c49c36b9753ca5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Type: 0
@@ -299,7 +299,6 @@ MonoBehaviour:
   IsClient: 0
   UpdateFrequency: 0.1
   MyCore: {fileID: 0}
-  GameObjectMessages: 
 --- !u!114 &7983167172287981532
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -325,10 +324,9 @@ MonoBehaviour:
   captureGreen: 0
   isCaptured: 0
   captureDir: 0
-  captureTime: 10
+  captureTime: 30
   captureTimer: 0
   flagVel: {x: 0, y: 0, z: 0}
-  flagSpeed: 0
   myFlag: {fileID: 0}
 --- !u!1001 &7262617562326825212
 PrefabInstance:

@@ -22,16 +22,24 @@ public class Bullet : NetworkComponent
         }
     }
 
-    public IEnumerator Despawn()
+    public IEnumerator Despawn(int time)
     {
-        yield return new WaitForSeconds(2);
+        yield return new WaitForSeconds(time);
         MyCore.NetDestroyObject(NetId);
     }
 
     public override IEnumerator SlowUpdate()
     {
-        TrailEffect.shape.rotation.Set(transform.forward.x , transform.forward.y + 180, transform.forward.z);
-        yield return new WaitForSeconds(MyCore.MasterTimer);   
+        if(IsServer)
+        {
+            StartCoroutine(Despawn(10));
+        }
+        while(true)
+        {
+            TrailEffect.shape.rotation.Set(transform.forward.x, transform.forward.y + 180, transform.forward.z);
+            yield return new WaitForSeconds(MyCore.MasterTimer);
+        }
+          
     }
 
     // Start is called before the first frame update
@@ -66,7 +74,7 @@ public class Bullet : NetworkComponent
                 }
             }
             SendUpdate("EXPLO", "1");
-            StartCoroutine(Despawn());
+            StartCoroutine(Despawn(2));
             Debug.Log(other.name);
             GetComponent<Rigidbody>().velocity = Vector3.zero;
         }
