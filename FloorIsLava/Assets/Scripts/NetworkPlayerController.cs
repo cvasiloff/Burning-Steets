@@ -9,6 +9,8 @@ public class NetworkPlayerController : NetworkComponent
     public Animator myAnime;
     public int animState = 0;
     public Canvas MyName;
+    public string PNAME;
+    NetworkedGM gm;
 
     public GameObject WeaponPanel;
     public GameObject AmmoPanel;
@@ -115,8 +117,14 @@ public class NetworkPlayerController : NetworkComponent
 
         if (flag == "PNAME")
         {
-            
+            PNAME = value;
+            //Set Name above players head
             this.transform.GetChild(7).GetChild(0).GetComponent<Text>().text = value;
+
+            if(IsServer)
+            {
+                SendUpdate("PNAME", value);
+            }
         }
 
         if (flag == "COLOR")
@@ -226,6 +234,14 @@ public class NetworkPlayerController : NetworkComponent
                 StartCoroutine(WepInHand.FireDelay());
             }
         }
+
+        if(flag == "SCORE")
+        {
+            string[] args = value.Split(',');
+
+            ScorePanel.transform.GetChild(1).GetComponent<Text>().text = args[0];
+            ScorePanel.transform.GetChild(3).GetComponent<Text>().text = args[1];
+        }
     }
 
     public IEnumerator LaunchDelay()
@@ -246,12 +262,28 @@ public class NetworkPlayerController : NetworkComponent
 
         yield return new WaitForSeconds(0.3f);
 
+        if(IsClient)
+        {
+            foreach (NetworkPlayer p in FindObjectsOfType<NetworkPlayer>())
+            {
+                if(p.Owner == this.Owner)
+                {
+                    PNAME = p.PNAME;
+                    SendCommand("PNAME", p.PNAME);
+                }
+                    
+            }
+        }
+
         if (IsServer)
         {
+
             AddWeapon(0);
         } 
 
         yield return new WaitForSeconds(0.3f);
+
+
 
         if (IsLocalPlayer)
             SwitchWeapon(0);
@@ -322,7 +354,7 @@ public class NetworkPlayerController : NetworkComponent
                 if (IsDirty)
                 {
                     //Update non-movement varialbes
-
+                    SendUpdate("PNAME",PNAME);
                     IsDirty = false;
                 }
             }
@@ -370,6 +402,7 @@ public class NetworkPlayerController : NetworkComponent
         MyRig = GetComponent<Rigidbody>();
         MyCam = Camera.main;
         myAnime = this.GetComponent<Animator>();
+        gm = FindObjectOfType<NetworkedGM>();
         JumpNum = MaxJumpNum;
 
         for (int i = 0; i < WeaponParent.transform.childCount; i++)
@@ -436,7 +469,7 @@ public class NetworkPlayerController : NetworkComponent
         JumpNum = MaxJumpNum;
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void OnTriggerEnter(Collider collision)
     { 
         //Give the server authority and change teams when it hits the Lobby Team
         if(IsServer)
@@ -450,9 +483,14 @@ public class NetworkPlayerController : NetworkComponent
                 {
                     if (p.Owner == this.Owner)
                     {
-                        p.Team = temp;
-                        p.canStart = true;
-                        p.SendUpdate("TEAM", temp);
+                        if(p.Team != temp)
+                        {
+                            p.Team = temp;
+                            p.canStart = true;
+                            p.SendUpdate("TEAM", temp);
+                            gm.ChangeTeam(temp, this, p);
+                        }
+                        
                     }
                 }
                 

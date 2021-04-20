@@ -512,6 +512,10 @@ MonoBehaviour:
   MyId: {fileID: 0}
   myAnime: {fileID: 0}
   animState: 0
+  MyName: {fileID: 0}
+  WeaponPanel: {fileID: 0}
+  AmmoPanel: {fileID: 0}
+  ScorePanel: {fileID: 0}
   Filler: {fileID: 236949158493065409}
   WepInHand: {fileID: 0}
   MaxWepCount: 5
@@ -536,7 +540,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8344550903576785149}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1245fa9dfe2c47a4ba554d698f69f343, type: 3}
+  m_Script: {fileID: 11500000, guid: f34ca87a457962d459c49c36b9753ca5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Type: 0

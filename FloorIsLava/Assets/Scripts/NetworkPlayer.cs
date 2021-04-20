@@ -154,7 +154,7 @@ public class NetworkPlayer : NetworkComponent
                     SendUpdate("COLOR", ColorType);
                     SendUpdate("MODEL", ModelNum.ToString());
                     SendUpdate("TEAM", Team);
-                    IsDirty = false;
+                    
                 }
             }
             yield return new WaitForSeconds(MyCore.MasterTimer);
@@ -162,15 +162,34 @@ public class NetworkPlayer : NetworkComponent
 
         if (IsServer)
         {
-            
-            MyCore.NetCreateObject(11, Owner, new Vector3(-18 + ((Owner * 3)%10), 89, -112));
+            if(gm.redPlayers <= gm.greenPlayers)
+            {
+                //Assign to Red Model
+                MyCore.NetCreateObject(11, Owner, new Vector3(-18 + ((Owner * 2) % 10), 89, -112));
+                ModelNum = 11;
+                gm.redPlayers++;
+                Team = "RED";
+                SendUpdate("TEAM", "RED");
+            }
+            else
+            {
+                //Assign to Green Model
+                MyCore.NetCreateObject(10, Owner, new Vector3(-18 + ((Owner * 2) % 10), 89, -112));
+                ModelNum = 10;
+                gm.greenPlayers++;
+                Team = "GREEN";
+                SendUpdate("TEAM", "GREEN");
+            }
+            SendUpdate("MODEL", ModelNum.ToString());
             SendUpdate("PNAME", PNAME);
+            
         }
 
         if(IsClient && IsLocalPlayer)
         {
             NetworkPlayer[] MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
 
+            //Hide Ready Panel
             foreach (NetworkPlayer x in MyPlayers)
             {
                 if (x.NetId == this.NetId)
@@ -292,6 +311,17 @@ public class NetworkPlayer : NetworkComponent
             //Do animations here
         }
 
+    }
+
+    private void OnDestroy()
+    {
+        if(IsServer)
+        {
+            if (this.Team == "RED")
+                gm.redPlayers--;
+            else
+                gm.greenPlayers--;
+        }
     }
 
 

@@ -16,6 +16,10 @@ public class NetworkedGM : NetworkComponent
     public int scoreTeamRed = 0;
     public int scoreTeamGreen = 0;
 
+    public int redPlayers = 0;
+    public int greenPlayers = 0;
+
+
     public Vector3[] newControlPoint;
     public int currControlPoint = 0;
 
@@ -56,19 +60,6 @@ public class NetworkedGM : NetworkComponent
                 scoreTeamRed += int.Parse(args[1]);
             else
                 scoreTeamGreen += int.Parse(args[1]);
-
-            if (MyPlayers.Length > 1)
-            {
-                foreach (NetworkPlayer c in MyPlayers)
-                {
-                    if(c.IsLocalPlayer)
-                    {
-                        NetworkPlayerController temp = c.GetComponent<NetworkPlayerController>();
-                        temp.ScorePanel.transform.GetChild(1).GetComponent<Text>().text = scoreTeamRed.ToString();
-                        temp.ScorePanel.transform.GetChild(1).GetComponent<Text>().text = scoreTeamGreen.ToString();
-                    }
-                }
-            }
         }
     }
 
@@ -97,7 +88,7 @@ public class NetworkedGM : NetworkComponent
                 bool testReady = true;
                 
                 MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
-                if(MyPlayers.Length > 4)
+                if(MyPlayers.Length > 4 && (redPlayers != 0 || greenPlayers != 0))
                 {
                     foreach (NetworkPlayer c in MyPlayers)
                     {
@@ -209,8 +200,36 @@ public class NetworkedGM : NetworkComponent
             scoreTeamGreen += value;
         }
         SendUpdate("SCORE", team + "," + value.ToString());
+
+        if (MyPlayers.Length > 1)
+        {
+            foreach (NetworkPlayer c in MyPlayers)
+            {
+                c.SendUpdate("SCORE", scoreTeamRed.ToString() + ',' + scoreTeamGreen.ToString());
+            }
+        }
     }
 
+    public void ChangeTeam(string team, NetworkPlayerController player, NetworkPlayer playerManager)
+    {
+        if(team != "GREEN")
+        {
+            redPlayers++;
+            greenPlayers--;
+            MyCore.NetDestroyObject(player.NetId);
+            playerManager.ModelNum = 11;
+        }
+        else
+        {
+            redPlayers--;
+            greenPlayers++;
+            MyCore.NetDestroyObject(player.NetId);
+            playerManager.ModelNum = 10;
+        }
+        playerManager.SendUpdate("MODEL", playerManager.ModelNum.ToString());
+        playerManager.SendUpdate("PNAME", playerManager.PNAME);
+        MyCore.NetCreateObject(playerManager.ModelNum, playerManager.Owner, player.transform.position, player.transform.rotation);
+    }
 
     // Start is called before the first frame update
     void Start()

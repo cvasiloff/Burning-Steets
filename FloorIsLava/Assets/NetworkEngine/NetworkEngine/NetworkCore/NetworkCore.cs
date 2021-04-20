@@ -74,6 +74,10 @@ public class NetworkCore : GenericNetworkCore
             yield return new WaitForSeconds(1);
             foreach (KeyValuePair<int, NetworkID> entry in NetObjs)
             {
+                while(!entry.Value.IsInit)
+                {
+                    yield return new WaitForSeconds(1);
+                }
                 string MSG = "CREATE#" + entry.Value.Type + "#" + entry.Value.Owner +
                "#" + entry.Value.NetId + "#" + entry.Value.gameObject.transform.position.ToString() + "#"
                + entry.Value.gameObject.transform.rotation.eulerAngles.ToString();
@@ -305,10 +309,11 @@ public class NetworkCore : GenericNetworkCore
                 temp.GetComponent<NetworkID>().NetId = ObjectCounter;
                 temp.GetComponent<NetworkID>().Type = type;
                 NetObjs.Add(ObjectCounter, temp.GetComponent<NetworkID>());
-                ObjectCounter++;
                 string MSG = "CREATE#" + type + "#" + ownMe +
-                "#" + (ObjectCounter - 1) + "#" + initPos.ToString() + "#" +
-                rotation.eulerAngles.ToString() + "\n";
+             "#" + (ObjectCounter) + "#" + initPos.ToString() + "#" +
+             rotation.eulerAngles.ToString() + "\n";
+                ObjectCounter++;
+             
                 MasterMessage += MSG;
                 foreach (NetworkComponent n in temp.GetComponents<NetworkComponent>())
                 {
@@ -341,14 +346,15 @@ public class NetworkCore : GenericNetworkCore
                 {
                     Destroy(NetObjs[netIDBad].gameObject);
                     NetObjs.Remove(netIDBad);
+                    string msg = "DELETE#" + netIDBad + "\n";
+                    MasterMessage += msg;
                 }
             }
             catch
             {
                 //Already been destroyed.
             }
-            string msg = "DELETE#" + netIDBad + "\n";
-            MasterMessage += msg;
+
         }
     }
     /// <summary>
