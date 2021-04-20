@@ -234,14 +234,6 @@ public class NetworkPlayerController : NetworkComponent
                 StartCoroutine(WepInHand.FireDelay());
             }
         }
-
-        if(flag == "SCORE")
-        {
-            string[] args = value.Split(',');
-
-            ScorePanel.transform.GetChild(1).GetComponent<Text>().text = args[0];
-            ScorePanel.transform.GetChild(3).GetComponent<Text>().text = args[1];
-        }
     }
 
     public IEnumerator LaunchDelay()
@@ -333,10 +325,12 @@ public class NetworkPlayerController : NetworkComponent
                 {
                     if(Weapons.Contains(i/3) && WeaponParent.transform.GetChild(i / 3).GetComponent<Weapon>() != null)
                     {
-                        //Debug.Log("test");
                         WeaponPanel.transform.GetChild(i + 2).GetComponent<Text>().text = WeaponParent.transform.GetChild(i / 3).GetComponent<Weapon>().CurrentAmmo.ToString();
                     }
-                }   
+                }
+
+                ScorePanel.transform.GetChild(1).GetComponent<Text>().text = gm.scoreTeamRed.ToString();
+                ScorePanel.transform.GetChild(3).GetComponent<Text>().text = gm.scoreTeamGreen.ToString();
             }
 
             //IfClient...
