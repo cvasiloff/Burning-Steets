@@ -234,6 +234,14 @@ public class NetworkPlayerController : NetworkComponent
                 StartCoroutine(WepInHand.FireDelay());
             }
         }
+
+        if(flag == "SCORE")
+        {
+            string[] args = value.Split(',');
+
+            ScorePanel.transform.GetChild(1).GetComponent<Text>().text = args[0];
+            ScorePanel.transform.GetChild(3).GetComponent<Text>().text = args[1];
+        }
     }
 
     public IEnumerator LaunchDelay()

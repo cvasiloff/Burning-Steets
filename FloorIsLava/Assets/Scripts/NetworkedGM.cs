@@ -60,19 +60,6 @@ public class NetworkedGM : NetworkComponent
                 scoreTeamRed += int.Parse(args[1]);
             else
                 scoreTeamGreen += int.Parse(args[1]);
-
-            if (MyPlayers.Length > 1)
-            {
-                foreach (NetworkPlayer c in MyPlayers)
-                {
-                    if(c.IsLocalPlayer)
-                    {
-                        NetworkPlayerController temp = c.GetComponent<NetworkPlayerController>();
-                        temp.ScorePanel.transform.GetChild(1).GetComponent<Text>().text = scoreTeamRed.ToString();
-                        temp.ScorePanel.transform.GetChild(1).GetComponent<Text>().text = scoreTeamGreen.ToString();
-                    }
-                }
-            }
         }
     }
 
@@ -213,6 +200,14 @@ public class NetworkedGM : NetworkComponent
             scoreTeamGreen += value;
         }
         SendUpdate("SCORE", team + "," + value.ToString());
+
+        if (MyPlayers.Length > 1)
+        {
+            foreach (NetworkPlayer c in MyPlayers)
+            {
+                c.SendUpdate("SCORE", scoreTeamRed.ToString() + ',' + scoreTeamGreen.ToString());
+            }
+        }
     }
 
     public void ChangeTeam(string team, NetworkPlayerController player, NetworkPlayer playerManager)
