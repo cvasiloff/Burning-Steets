@@ -317,7 +317,7 @@ public class Connector
     public ProducerConsumerQueue<string> TCPMessage;
     public byte[] TCPbuffer = new byte[1024]; 
     public bool TCPIsSending = false;
-    public int ConnectionID = -10;
+    public int ConnectionID = -1;
 
 
     //UDP class variables.
