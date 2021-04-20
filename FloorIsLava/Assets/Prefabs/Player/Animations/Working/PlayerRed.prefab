@@ -1997,6 +1997,7 @@ MonoBehaviour:
   myAnime: {fileID: 0}
   animState: 0
   MyName: {fileID: 0}
+  PNAME: 
   WeaponPanel: {fileID: 3351312339231051396}
   AmmoPanel: {fileID: 2420170148801089209}
   ScorePanel: {fileID: 5164137698594857835}
