@@ -88,7 +88,7 @@ public class NetworkedGM : NetworkComponent
                 bool testReady = true;
                 
                 MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
-                if(MyPlayers.Length > 4 && (redPlayers != 0 || greenPlayers != 0))
+                if(MyPlayers.Length > 1 && (redPlayers != 0 || greenPlayers != 0))
                 {
                     foreach (NetworkPlayer c in MyPlayers)
                     {
@@ -112,7 +112,9 @@ public class NetworkedGM : NetworkComponent
                 yield return new WaitForSeconds(.2f);
             }
             SendUpdate("GAMESTART", "1");
-            GameObject.FindGameObjectWithTag("NetworkManager").GetComponent<LobbyManager>().NotifyGameStarted();
+
+            if (GameObject.FindGameObjectWithTag("NetworkManager").GetComponent<LobbyManager>() != null)
+                GameObject.FindGameObjectWithTag("NetworkManager").GetComponent<LobbyManager>().NotifyGameStarted();
 
 
 
