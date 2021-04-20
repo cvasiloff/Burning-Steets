@@ -202,14 +202,6 @@ public class NetworkedGM : NetworkComponent
             scoreTeamGreen += value;
         }
         SendUpdate("SCORE", team + "," + value.ToString());
-
-        if (MyPlayers.Length > 1)
-        {
-            foreach (NetworkPlayer c in MyPlayers)
-            {
-                c.SendUpdate("SCORE", scoreTeamRed.ToString() + ',' + scoreTeamGreen.ToString());
-            }
-        }
     }
 
     public void ChangeTeam(string team, NetworkPlayerController player, NetworkPlayer playerManager)

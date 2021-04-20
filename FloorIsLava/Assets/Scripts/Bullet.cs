@@ -56,7 +56,7 @@ public class Bullet : NetworkComponent
 
     private void OnTriggerEnter(Collider other)
     {
-        if(IsServer)
+        if(IsServer && other.gameObject.name != "ControlPoint")
         {
             Collider[] objects = Physics.OverlapSphere(transform.position, ExplosionRadius);
             foreach (Collider c in objects)
