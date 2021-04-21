@@ -8,6 +8,7 @@ public class PlaneControlScript : NetworkComponent
 {
     public NetworkNavMeshAgent NNMA;
     public bool boxSpawn = false;
+    public int boxCount = 0;
 
     public override void HandleMessage(string flag, string value)
     {
@@ -17,31 +18,25 @@ public class PlaneControlScript : NetworkComponent
         }
     }
 
-    public IEnumerator TryBoxSpawn()
-    {
-        boxSpawn = true;
-        yield return new WaitForSeconds(5);
-    }
-
     public override IEnumerator SlowUpdate()
     {
         if (IsServer)
         {
             NNMA.MyAgent.speed = 10f;
         }
+        NetworkedGM GM = FindObjectOfType<NetworkedGM>();
         while (MyCore.IsConnected)
         {
-            if (!boxSpawn && IsServer)
+            if (GM.GameReady)
             {
-                //StartCoroutine(TryBoxSpawn());
-                boxSpawn = true;
+                if (boxCount <= 8 && IsServer && !boxSpawn)
+                {
+                    //StartCoroutine(TryBoxSpawn());
+                    boxSpawn = true;
+                }
             }
-            else if (boxSpawn && IsServer)
-            {
-                GameObject temp = MyCore.NetCreateObject(8, this.Owner, this.transform.position + new Vector3(0, -1, 0));
-                boxSpawn = false;
-            }
-            yield return new WaitForSeconds(5);
+
+            yield return new WaitForSeconds(10);
         }
     }
 
@@ -51,6 +46,14 @@ public class PlaneControlScript : NetworkComponent
         {
             NNMA.MyAgent.destination = NNMA.Points.transform.Find("Point" + point).position;
             SendUpdate("POINT", ("" + point));
+
+
+            if (boxSpawn)
+            {
+                GameObject temp = MyCore.NetCreateObject(8, this.Owner, this.transform.position + new Vector3(0, -1, 0));
+                boxCount++;
+                boxSpawn = false;
+            }
         }
     }
 

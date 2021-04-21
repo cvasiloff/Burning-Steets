@@ -7,7 +7,7 @@ using NETWORK_ENGINE;
 public class NetworkedGM : NetworkComponent
 {
 
-    bool GameReady = false;
+    public bool GameReady = false;
     bool GameEnd = false;
 
     public NetworkPlayer[] MyPlayers;
