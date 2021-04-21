@@ -8,7 +8,7 @@ public class NetworkTransform : NetworkComponent
     public Vector3 LastPosition;
     public Vector3 LastRotation;
 
-    public float Threshold = 0.5f;
+    public float Threshold = 0.1f;
 
     public float EThreshold = 2.5f;
 

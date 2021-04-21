@@ -36,6 +36,7 @@ public class NetworkNavMeshAgent : MonoBehaviour
 		//Debug.Log("Got valid NetId");
 		MyNetT.UsingNavMesh = MyNetT.MyNetId.NetId % 2 == 0;
 		yield return new WaitUntil(() => MyAgent.isOnNavMesh);
+        MyNetT.UsingNavMesh = MyAgent.isOnNavMesh;
 		if (MyNetT.IsServer)
 		{
 			InitPos = this.transform.position;
