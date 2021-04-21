@@ -30,26 +30,12 @@ public class NetworkedGM : NetworkComponent
         if(flag == "GAMESTART" && IsClient)
         {
             GameReady = true;
-            //NetworkPlayer[] MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
-            //foreach (NetworkPlayer c in MyPlayers)
-            //{
-            //    c.transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
-            //}
-            
 
-            //For each Network Player x in scene
-            //Disable child(0) - assuming the child is the canvas.
+        }
 
-            /*
-            MyPlayers = GameObject.FindObjectsOfType<BingoCard>();
-            foreach(BingoCard x in MyPlayers)
-            {
-                x.GameStart();
-            }
-            */
-
-            //Possibly disable the UI...
-            //Disable ready/unready button
+        if(flag == "GAMEEND" && IsClient)
+        {
+            GameEnd = true;
         }
 
         if(flag == "SCORE" && IsClient)
@@ -113,6 +99,7 @@ public class NetworkedGM : NetworkComponent
             }
             SendUpdate("GAMESTART", "1");
 
+            MyCore.NotifyGameStart();
             if (GameObject.FindGameObjectWithTag("NetworkManager").GetComponent<LobbyManager>() != null)
                 GameObject.FindGameObjectWithTag("NetworkManager").GetComponent<LobbyManager>().NotifyGameStarted();
 
@@ -162,6 +149,18 @@ public class NetworkedGM : NetworkComponent
 
             }
 
+            SendUpdate("GAMEEND", "1");
+
+            while (true)
+            {
+                Debug.Log("The Game Is Over!");
+                yield return new WaitForSeconds(10);
+                Debug.Log("Goodbye!");
+                if (IsServer)
+                {
+                    
+                }
+            }
             Debug.Log("The Game Is Over!");
             yield return new WaitForSeconds(20);
             //MyCore.LeaveGame();
@@ -187,7 +186,6 @@ public class NetworkedGM : NetworkComponent
             //Set end game to true
             //Declare Winner
             Debug.Log("No More Control Points!");
-            GameEnd = true;
         }
         
     }
@@ -202,6 +200,13 @@ public class NetworkedGM : NetworkComponent
             scoreTeamGreen += value;
         }
         SendUpdate("SCORE", team + "," + value.ToString());
+
+        if(scoreTeamGreen == 3 || scoreTeamRed == 3)
+        {
+            //If one team
+            GameEnd = true;
+            
+        }
     }
 
     public void ChangeTeam(string team, NetworkPlayerController player, NetworkPlayer playerManager)

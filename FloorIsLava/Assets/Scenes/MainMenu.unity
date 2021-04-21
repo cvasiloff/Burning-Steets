@@ -411,7 +411,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 2058049232}
-        m_MethodName: ShowMain
+        m_MethodName: SetMain
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -25307,7 +25307,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 2058049232}
-        m_MethodName: ShowMain
+        m_MethodName: SetMain
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -25944,7 +25944,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 2058049232}
-        m_MethodName: ShowOptions
+        m_MethodName: SetOptions
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -36979,7 +36979,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 2058049232}
-        m_MethodName: ShowMain
+        m_MethodName: SetMain
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -40802,7 +40802,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 2058049232}
-        m_MethodName: ShowHowToPlay
+        m_MethodName: SetHowTo
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -52441,7 +52441,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 2058049232}
-        m_MethodName: ShowCredits
+        m_MethodName: SetCredits
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -54410,6 +54410,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c429060d4debae4bb0553df3c276440, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  main: {fileID: 1683190124}
+  options: {fileID: 1284003849}
+  howTo: {fileID: 1366742617}
+  credits: {fileID: 232914740}
 --- !u!1001 &2058603028
 PrefabInstance:
   m_ObjectHideFlags: 0

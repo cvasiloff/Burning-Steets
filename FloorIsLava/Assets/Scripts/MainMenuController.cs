@@ -5,6 +5,11 @@ using UnityEngine.SceneManagement;
 
 public class MainMenuController : MonoBehaviour
 {
+    public GameObject main;
+    public GameObject options;
+    public GameObject howTo;
+    public GameObject credits;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -26,7 +31,37 @@ public class MainMenuController : MonoBehaviour
     {
         
     }
+    public void SetMain()
+    {
+        main.SetActive(true);
+        options.SetActive(false);
+        howTo.SetActive(false);
+        credits.SetActive(false);
+    }
 
+    public void SetOptions()
+    {
+        main.SetActive(false);
+        options.SetActive(true);
+        howTo.SetActive(false);
+        credits.SetActive(false);
+    }
+
+    public void SetHowTo()
+    {
+        main.SetActive(false);
+        options.SetActive(false);
+        howTo.SetActive(true);
+        credits.SetActive(false);
+    }
+
+    public void SetCredits()
+    {
+        main.SetActive(false);
+        options.SetActive(false);
+        howTo.SetActive(false);
+        credits.SetActive(true);
+    }
     public void WANConnect()
     {
         //Load Wan scene.
