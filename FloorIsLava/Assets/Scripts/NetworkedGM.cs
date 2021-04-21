@@ -8,7 +8,7 @@ public class NetworkedGM : NetworkComponent
 {
 
     public bool GameReady = false;
-    bool GameEnd = false;
+    public bool GameEnd = false;
 
     public NetworkPlayer[] MyPlayers;
     public GameObject[] TeamRedSpawn;
@@ -36,6 +36,28 @@ public class NetworkedGM : NetworkComponent
         if(flag == "GAMEEND" && IsClient)
         {
             GameEnd = true;
+            string[] args = value.Split(',');
+            foreach(NetworkPlayer p in FindObjectsOfType<NetworkPlayer>())
+            {
+                if(p.IsLocalPlayer)
+                {
+                    GameObject winPanel = p.transform.GetChild(0).GetComponent<Canvas>().transform.GetChild(3).gameObject;
+                    winPanel.SetActive(true);
+                    if (scoreTeamGreen > scoreTeamRed)
+                    {
+                        winPanel.transform.GetChild(0).GetComponent<Text>().color = Color.green;
+                        winPanel.transform.GetChild(0).GetComponent<Text>().text = "Green Team Wins!";
+                    }
+                    else
+                    {
+                        winPanel.transform.GetChild(0).GetComponent<Text>().color = Color.red;
+                        winPanel.transform.GetChild(0).GetComponent<Text>().text = "Red Team Wins!";
+                    }
+
+                    
+                }
+                
+            }
         }
 
         if(flag == "SCORE" && IsClient)
@@ -155,16 +177,13 @@ public class NetworkedGM : NetworkComponent
             }
 
             SendUpdate("GAMEEND", "1");
+            StartCoroutine(KillGame());
 
             while (true)
             {
-                Debug.Log("The Game Is Over!");
+                
                 yield return new WaitForSeconds(10);
-                Debug.Log("Goodbye!");
-                if (IsServer)
-                {
-                    
-                }
+                
             }
             Debug.Log("The Game Is Over!");
             yield return new WaitForSeconds(20);
@@ -174,6 +193,14 @@ public class NetworkedGM : NetworkComponent
             //MyCore.LeaveGame();
         }
 
+    }
+
+    public IEnumerator KillGame()
+    {
+        Debug.Log("The Game Is Over!");
+        yield return new WaitForSeconds(10);
+        Debug.Log("Goodbye!");
+        MyCore.UI_Quit();
     }
 
     public void NextPhase()
