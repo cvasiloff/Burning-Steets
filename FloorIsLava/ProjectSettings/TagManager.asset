@@ -8,6 +8,7 @@ TagManager:
   - Lobby
   - Flag
   - NetworkManager
+  - Ball
   layers:
   - Default
   - TransparentFX

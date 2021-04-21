@@ -69,10 +69,18 @@ public class Bullet : NetworkComponent
                     Rigidbody r = c.GetComponent<Rigidbody>();
                     if (r != null)
                     {
-                        //Debug.Log((r.transform.position - transform.position).normalized * ExplosionPower);
                         r.gameObject.GetComponent<NetworkPlayerController>().IsLaunched = true;
                         r.velocity += ((r.transform.position - transform.position).normalized * ExplosionPower);
                         
+                    }
+                }
+                else if (c.tag == "Ball")
+                {
+                    Rigidbody r = c.GetComponent<Rigidbody>();
+                    if (r != null)
+                    {
+                        r.velocity += ((r.transform.position - transform.position).normalized * ExplosionPower);
+
                     }
                 }
             }

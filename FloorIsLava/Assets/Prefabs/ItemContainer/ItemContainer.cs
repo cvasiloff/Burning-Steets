@@ -11,7 +11,7 @@ public class ItemContainer : NetworkComponent
     public Rigidbody MyRig;
     public Transform ItemPosition;
     public bool IsWeapon;
-    public bool IsPower;
+    public bool IsCrateDrop;
 
     public override void HandleMessage(string flag, string value)
     {
@@ -25,6 +25,11 @@ public class ItemContainer : NetworkComponent
         {
             IsAvalible = true;
             MyRig.gameObject.SetActive(true);
+        }
+
+        if(flag == "REMOVE")
+        {
+            MyCore.NetDestroyObject(NetId);
         }
     }
 
@@ -71,9 +76,16 @@ public class ItemContainer : NetworkComponent
             {
                 collision.gameObject.GetComponent<NetworkPlayerController>().AddWeapon(ContainedItem.GetComponent<Weapon>().ItemID);
             }
-            SendUpdate("USED", "1");
-            MyRig.gameObject.SetActive(false);
-            StartCoroutine(ItemRespawn(RespawnTimer));
+            if(IsCrateDrop)
+            {
+                SendUpdate("REMOVE", "1");
+            }
+            else
+            {
+                SendUpdate("USED", "1");
+                MyRig.gameObject.SetActive(false);
+                StartCoroutine(ItemRespawn(RespawnTimer));
+            }
         }
     }
 }
