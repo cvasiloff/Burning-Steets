@@ -477,10 +477,14 @@ public class NetworkPlayerController : NetworkComponent
                 {
                     if (p.Owner == this.Owner)
                     {
-                        if(p.Team != temp)
+                        if(collision.name == "ReadyTrigger")
+                        {
+                            p.canStart = true;
+                        }
+                        else if(p.Team != temp)
                         {
                             p.Team = temp;
-                            p.canStart = true;
+                            //p.canStart = true;
                             p.SendUpdate("TEAM", temp);
                             gm.ChangeTeam(temp, this, p);
                         }
