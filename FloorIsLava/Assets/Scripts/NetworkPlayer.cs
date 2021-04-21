@@ -117,6 +117,11 @@ public class NetworkPlayer : NetworkComponent
             this.transform.GetChild(0).GetComponent<Canvas>().transform.GetChild(2).gameObject.SetActive(bool.Parse(value));
         }
 
+        if(flag == "WINNER" && IsClient)
+        {
+
+        }
+
         if(flag == "ARROW" && IsLocalPlayer)
         {
             Camera.main.transform.GetChild(1).gameObject.SetActive(bool.Parse(value));
@@ -241,7 +246,7 @@ public class NetworkPlayer : NetworkComponent
             {
                 //Choose to toggle display of lava rising
                 //Check if value has changed
-                if(gm.lava.lavaWarning && lavaRise)
+                if(gm.lava.lavaWarning && lavaRise && !gm.GameEnd)
                 {
                     SendUpdate("SHOWLAVA", lavaRise.ToString());
                     lavaRise = false;
@@ -250,6 +255,11 @@ public class NetworkPlayer : NetworkComponent
                 {
                     SendUpdate("SHOWLAVA", lavaRise.ToString());
                     lavaRise = true;
+                }
+
+                if(gm.GameEnd)
+                {
+                    SendUpdate("WINNER", gm.scoreTeamRed.ToString() + "," + gm.scoreTeamGreen.ToString());
                 }
                 if (IsDirty)
                 {
