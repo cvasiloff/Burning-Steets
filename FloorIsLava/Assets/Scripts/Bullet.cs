@@ -11,6 +11,8 @@ public class Bullet : NetworkComponent
     public float ExplosionPower;
     public ParticleSystem ExplosionEffect;
     public ParticleSystem TrailEffect;
+    public AudioSource Sound;
+    public AudioClip ExplosionSound;
 
     public override void HandleMessage(string flag, string value)
     {
@@ -19,6 +21,7 @@ public class Bullet : NetworkComponent
             GetComponent<MeshRenderer>().enabled = false;
             TrailEffect.Stop();
             ExplosionEffect.Play();
+            Sound.PlayOneShot(ExplosionSound);
         }
     }
 
@@ -74,7 +77,7 @@ public class Bullet : NetworkComponent
                 }
             }
             SendUpdate("EXPLO", "1");
-            StartCoroutine(Despawn(2));
+            StartCoroutine(Despawn(1));
             Debug.Log(other.name);
             GetComponent<Rigidbody>().velocity = Vector3.zero;
         }

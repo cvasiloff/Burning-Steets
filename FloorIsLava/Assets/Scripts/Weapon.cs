@@ -9,6 +9,8 @@ public class Weapon : MonoBehaviour
     public Transform BulletSpawn;
     public Vector3 MyPos;
     public Vector3 MyRot;
+    public AudioClip FireSound;
+    public AudioClip ReloadSound;
     public int MaxAmmo;
     public int CurrentAmmo;
     public bool IsInInventory;
@@ -59,6 +61,7 @@ public class Weapon : MonoBehaviour
     public void Reload()
     {
         CurrentAmmo = MaxAmmo;
+        MyController.Sound.PlayOneShot(ReloadSound);
     }
 
     //call this function for when the player picks up the weapon for the first time this life
@@ -81,8 +84,7 @@ public class Weapon : MonoBehaviour
     {
         Vector3 temp = MyController.MyCam.gameObject.transform.forward * Projectile.GetComponent<Bullet>().speed;
         MyController.SendCommand("FIRE", BulletSpawn.position.x.ToString() + ',' + BulletSpawn.position.y.ToString() + ',' +
-            BulletSpawn.position.z.ToString() + ',' + BulletSpawn.rotation.w.ToString() + ',' + BulletSpawn.rotation.x.ToString() + ',' +
-            BulletSpawn.rotation.y.ToString() + ',' + BulletSpawn.rotation.z.ToString() + ',' + temp.x + ',' + temp.y + ',' + temp.z);
+            BulletSpawn.position.z.ToString() + ',' + temp.x + ',' + temp.y + ',' + temp.z);
         CurrentAmmo--;
         CanShoot = false;
         StartCoroutine(FireDelay());

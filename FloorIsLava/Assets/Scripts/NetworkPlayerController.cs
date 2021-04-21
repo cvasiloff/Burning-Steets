@@ -11,6 +11,9 @@ public class NetworkPlayerController : NetworkComponent
     public Canvas MyName;
     public string PNAME;
     NetworkedGM gm;
+    NetworkPlayer NP;
+
+    public AudioSource Sound;
 
     public GameObject WeaponPanel;
     public GameObject AmmoPanel;
@@ -223,15 +226,21 @@ public class NetworkPlayerController : NetworkComponent
 
         if (flag == "FIRE")
         {
-            if (WepInHand.CanShoot)
+            if (WepInHand.CanShoot && IsServer)
             {
                 WepInHand.CanShoot = false;
                 string[] args = value.Split(',');
                 GameObject temp = MyCore.NetCreateObject(WepInHand.Projectile.GetComponent<Bullet>().MyType, this.Owner, 
-                    new Vector3( float.Parse(args[0]),  float.Parse(args[1]),  float.Parse(args[2])), new Quaternion( float.Parse(args[3]),  float.Parse(args[4]),  float.Parse(args[5]),  float.Parse(args[6]))); 
-                temp.GetComponent<Rigidbody>().velocity = new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9]));
+                    new Vector3( float.Parse(args[0]),  float.Parse(args[1]),  float.Parse(args[2])), this.transform.rotation); 
+                temp.GetComponent<Rigidbody>().velocity = new Vector3(float.Parse(args[3]), float.Parse(args[4]), float.Parse(args[5]));
                 WepInHand.CurrentAmmo--;
                 StartCoroutine(WepInHand.FireDelay());
+
+                SendUpdate("FIRE", "1");
+            }
+            if (IsClient)
+            {
+                Sound.PlayOneShot(WepInHand.FireSound);
             }
         }
     }
@@ -246,8 +255,17 @@ public class NetworkPlayerController : NetworkComponent
     {
         if (IsLocalPlayer)
         {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            foreach (NetworkPlayer p in FindObjectsOfType<NetworkPlayer>())
+            {
+                if(p.Owner == this.Owner && !p.IsPaused)
+                {
+                    Cursor.lockState = CursorLockMode.Locked;
+                    Cursor.visible = false;
+                    NP = p;
+                    break;
+                }
+            }
+                
             this.transform.GetChild(0).GetComponent<SkinnedMeshRenderer>().enabled = false;
             WeaponPanel.transform.parent.gameObject.SetActive(true);
         }
@@ -283,7 +301,7 @@ public class NetworkPlayerController : NetworkComponent
         while (true)
         {
 
-            if (IsLocalPlayer && IsClient)
+            if (IsLocalPlayer && IsClient && !NP.IsPaused)
             {
                 SendCommand("MOVE", Input.GetAxisRaw("Vertical").ToString() + ',' + Input.GetAxisRaw("Horizontal").ToString(), false);
                 SendCommand("ROTATE", cameraX.ToString() + ',' + cameraY.ToString(), false);
@@ -416,9 +434,8 @@ public class NetworkPlayerController : NetworkComponent
         {
             MyName.transform.LookAt(MyCam.transform);
         }
-        if (IsLocalPlayer && IsClient)
+        if (IsLocalPlayer && IsClient && NP != null && !NP.IsPaused)
         {
-            
 
             mRotationX = Input.GetAxisRaw("Mouse X") * sensitivity;
 
