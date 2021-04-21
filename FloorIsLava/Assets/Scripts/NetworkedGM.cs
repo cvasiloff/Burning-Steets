@@ -220,6 +220,7 @@ public class NetworkedGM : NetworkComponent
             MyCore.NetDestroyObject(player.NetId);
             playerManager.ModelNum = 10;
         }
+        playerManager.SendUpdate("REMOVEWEAPONS",playerManager.Owner.ToString());
         playerManager.SendUpdate("MODEL", playerManager.ModelNum.ToString());
         playerManager.SendUpdate("PNAME", playerManager.PNAME);
         MyCore.NetCreateObject(playerManager.ModelNum, playerManager.Owner, player.transform.position, player.transform.rotation);
