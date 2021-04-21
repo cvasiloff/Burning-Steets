@@ -47,6 +47,11 @@ public class NetworkedGM : NetworkComponent
             else
                 scoreTeamGreen += int.Parse(args[1]);
         }
+
+        if(flag == "CURRCP" && IsClient)
+        {
+            currControlPoint = int.Parse(value);
+        }
     }
 
     public override IEnumerator SlowUpdate()
@@ -174,10 +179,11 @@ public class NetworkedGM : NetworkComponent
     public void NextPhase()
     {
         //Activate Next Checkpoint
-        if (newControlPoint.Length > currControlPoint)
+        if (newControlPoint.Length > currControlPoint+1)
         {
-            MyCore.NetCreateObject(2, -1, newControlPoint[currControlPoint]);
+            MyCore.NetCreateObject(2, -1, newControlPoint[currControlPoint+1]);
             currControlPoint++;
+            SendUpdate("CURRCP",currControlPoint.ToString());
             //Move Lava, but wait for x seconds
             StartCoroutine(lava.LavaDelay(5));
         }

@@ -117,6 +117,11 @@ public class NetworkPlayer : NetworkComponent
             this.transform.GetChild(0).GetComponent<Canvas>().transform.GetChild(2).gameObject.SetActive(bool.Parse(value));
         }
 
+        if(flag == "ARROW" && IsLocalPlayer)
+        {
+            Camera.main.transform.GetChild(1).gameObject.SetActive(bool.Parse(value));
+        }
+
     }
 
     void SetPlayerReady(NetworkPlayer player)
@@ -158,6 +163,12 @@ public class NetworkPlayer : NetworkComponent
             //}
 
             this.transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(true);
+
+            PointToCP temp = Camera.main.transform.GetChild(1).GetComponent<PointToCP>();
+            temp.gm = gm;
+            temp.canLook = true;
+
+            
         }
 
         while (!isReady)
@@ -218,6 +229,9 @@ public class NetworkPlayer : NetworkComponent
             //}
 
             this.transform.GetChild(0).GetComponent<Canvas>().transform.GetChild(0).gameObject.SetActive(false);
+
+            
+            
         }
 
         while(true)
@@ -256,6 +270,7 @@ public class NetworkPlayer : NetworkComponent
     {
 
         SendUpdate("REMOVEWEAPONS",player.Owner.ToString());
+        SendUpdate("ARROW","false");
 
         //If object is destroyed in capture zone, flag will still be captured
         MyCore.NetDestroyObject(player.NetId);
@@ -267,6 +282,7 @@ public class NetworkPlayer : NetworkComponent
     public IEnumerator RespawnPlayer(float time, NetworkPlayerController player)
     {
         yield return new WaitForSeconds(time);
+        SendUpdate("ARROW", "true");
         NetworkPlayer[] MyPlayers = FindObjectsOfType<NetworkPlayer>();
         foreach (NetworkPlayer p in MyPlayers)
         {

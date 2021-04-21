@@ -75,9 +75,25 @@ MonoBehaviour:
   MyCore: {fileID: 0}
   MyId: {fileID: 0}
   MyPlayers: []
-  TeamRedSpawn: []
-  TeamGreenSpawn: []
+  TeamRedSpawn:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  TeamGreenSpawn:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   scoreTeamRed: 0
   scoreTeamGreen: 0
-  newControlPoint: []
+  redPlayers: 0
+  greenPlayers: 0
+  newControlPoint:
+  - {x: -2.96419, y: 50.22323, z: -37.89249}
+  - {x: -34, y: 56.05, z: -49.55}
+  - {x: -2, y: 58.76, z: 12.43}
+  - {x: -30.4, y: 62.929, z: 12.86}
+  - {x: -48, y: 56.16, z: 6.77}
   currControlPoint: 0
+  lava: {fileID: 0}

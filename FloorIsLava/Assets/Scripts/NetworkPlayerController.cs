@@ -255,6 +255,7 @@ public class NetworkPlayerController : NetworkComponent
     {
         if (IsLocalPlayer)
         {
+            
             foreach (NetworkPlayer p in FindObjectsOfType<NetworkPlayer>())
             {
                 if(p.Owner == this.Owner && !p.IsPaused)
@@ -294,7 +295,6 @@ public class NetworkPlayerController : NetworkComponent
 
         if (IsServer)
         {
-
             AddWeapon(0);
         } 
 
