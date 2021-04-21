@@ -24,7 +24,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 352923588463916409}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.000337, y: 0.000314, z: -0}
+  m_LocalPosition: {x: 0.000556, y: 0.000314, z: -0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 805742567715375641}
@@ -127,10 +127,12 @@ MonoBehaviour:
   BulletSpawn: {fileID: 368547918493545238}
   MyPos: {x: 0, y: 0, z: 0}
   MyRot: {x: 0, y: 0, z: 0}
+  FireSound: {fileID: 8300000, guid: 603e61b8065e8cd42b5b25aeecdd33bf, type: 3}
+  ReloadSound: {fileID: 8300000, guid: 3623318ab76ce8b48b7384d05d9372f3, type: 3}
   MaxAmmo: 15
   CurrentAmmo: 0
   IsInInventory: 0
-  ROF: 0.2
+  ROF: 1
   CanShoot: 0
   Projectile: {fileID: 6464106280785595606, guid: dd5cfaafff79d5048a6e0572658e6fad,
     type: 3}

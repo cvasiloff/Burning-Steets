@@ -61,6 +61,10 @@ public class Weapon : MonoBehaviour
     public void Reload()
     {
         CurrentAmmo = MaxAmmo;
+        if(!CanShoot)
+        {
+            CanShoot = true;
+        }
         MyController.Sound.PlayOneShot(ReloadSound);
     }
 

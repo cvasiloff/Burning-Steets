@@ -103,7 +103,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3431378199504946025}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1245fa9dfe2c47a4ba554d698f69f343, type: 3}
+  m_Script: {fileID: 11500000, guid: f34ca87a457962d459c49c36b9753ca5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Type: 0
@@ -115,7 +115,6 @@ MonoBehaviour:
   IsClient: 0
   UpdateFrequency: 0.1
   MyCore: {fileID: 0}
-  GameObjectMessages: 
 --- !u!114 &9198169889091802247
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -138,6 +137,7 @@ MonoBehaviour:
   MyCore: {fileID: 0}
   MyId: {fileID: 0}
   IsAvalible: 0
+  RespawnTimer: 0
   ContainedItem: {fileID: 0}
   MyRig: {fileID: 0}
   ItemPosition: {fileID: 5966697854987840298}
