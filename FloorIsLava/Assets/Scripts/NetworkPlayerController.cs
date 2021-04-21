@@ -264,6 +264,11 @@ public class NetworkPlayerController : NetworkComponent
                     NP = p;
                     break;
                 }
+                else if(p.Owner == this.Owner && p.IsPaused)
+                {
+                    NP = p;
+                    break;
+                }
             }
                 
             this.transform.GetChild(0).GetComponent<SkinnedMeshRenderer>().enabled = false;
