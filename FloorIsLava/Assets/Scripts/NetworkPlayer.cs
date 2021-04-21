@@ -8,6 +8,10 @@ public class NetworkPlayer : NetworkComponent
 {
     public int MoveSpeed;
 
+    public bool IsPaused;
+    public GameObject PauseMenu;
+    public GameObject NetworkMan;
+
     public string PNAME;
     public string ColorType;
     public int ModelNum;
@@ -123,23 +127,30 @@ public class NetworkPlayer : NetworkComponent
         Team = team;
     }
 
-
     public override IEnumerator SlowUpdate()
     {
-     
         if (IsClient && IsLocalPlayer)
         {
-            GameObject.FindGameObjectWithTag("NetworkManager").transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
-
             NetworkPlayer[] MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
 
-            foreach (NetworkPlayer x in MyPlayers)
-            {
-                if (x.NetId == this.NetId)
-                {
-                    x.transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(true);
-                }
-            }
+            NetworkMan = GameObject.FindGameObjectWithTag("NetworkManager");
+            NetworkMan.transform.GetChild(0).GetComponent<Canvas>().transform.GetChild(0).gameObject.SetActive(false);
+
+            PauseMenu = this.transform.GetChild(0).GetComponent<Canvas>().transform.GetChild(1).gameObject;
+
+            //GameObject.FindGameObjectWithTag("NetworkManager").transform.GetChild(0).GetComponent<Canvas>().transform.GetChild(0).gameObject.SetActive(false);
+
+            //NetworkPlayer[] MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
+
+            //foreach (NetworkPlayer x in MyPlayers)
+            //{
+            //    if (x.NetId == this.NetId)
+            //    {
+            //        x.transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(true);
+            //    }
+            //}
+
+            this.transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(true);
         }
 
         while (!isReady)
@@ -187,21 +198,20 @@ public class NetworkPlayer : NetworkComponent
 
         if(IsClient && IsLocalPlayer)
         {
-            NetworkPlayer[] MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
+            //NetworkPlayer[] MyPlayers = GameObject.FindObjectsOfType<NetworkPlayer>();
 
             //Hide Ready Panel
-            foreach (NetworkPlayer x in MyPlayers)
-            {
-                if (x.NetId == this.NetId)
-                {
-                    x.transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
-                }
-            }
+
+            //foreach (NetworkPlayer x in MyPlayers)
+            //{
+            //    if (x.NetId == this.NetId)
+            //    {
+            //        x.transform.GetChild(0).GetComponent<Canvas>().gameObject.SetActive(false);
+            //    }
+            //}
+
+            this.transform.GetChild(0).GetComponent<Canvas>().transform.GetChild(0).gameObject.SetActive(false);
         }
-
-
-
-
 
         while(true)
         {
@@ -266,9 +276,9 @@ public class NetworkPlayer : NetworkComponent
         if (IsLocalPlayer)
         {
             if(!isReady)
-                this.transform.GetChild(0).GetComponent<Canvas>().transform.GetChild(0).GetComponent<Image>().color = Color.green;
+                this.transform.GetChild(0).GetComponent<Canvas>().transform.GetChild(0).transform.GetChild(0).GetComponent<Image>().color = Color.green;
             else
-                this.transform.GetChild(0).GetComponent<Canvas>().transform.GetChild(0).GetComponent<Image>().color = Color.red;
+                this.transform.GetChild(0).GetComponent<Canvas>().transform.GetChild(0).transform.GetChild(0).GetComponent<Image>().color = Color.red;
             SendCommand("READY", (!isReady).ToString());
         }
     }
@@ -303,12 +313,33 @@ public class NetworkPlayer : NetworkComponent
         gm = FindObjectOfType<NetworkedGM>();
     }
 
+    public void SetPaused()
+    {
+        IsPaused = !IsPaused;
+        if(IsPaused)
+            Cursor.lockState = CursorLockMode.None;
+        else
+            Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = IsPaused;
+        PauseMenu.SetActive(IsPaused);
+    }
+
+    public void SetSettingsPanel()
+    {
+        PauseMenu.transform.GetChild(0).gameObject.SetActive(!PauseMenu.transform.GetChild(0).gameObject.activeSelf);
+        PauseMenu.transform.GetChild(1).gameObject.SetActive(!PauseMenu.transform.GetChild(1).gameObject.activeSelf);
+    }
+
     // Update is called once per frame
     void Update()
     {
-        if(IsClient)
+        if (IsClient && IsLocalPlayer && isReady)
         {
-            //Do animations here
+            if(Input.GetKeyDown(KeyCode.Escape))
+            {
+                SetPaused();
+            }
+
         }
 
     }
