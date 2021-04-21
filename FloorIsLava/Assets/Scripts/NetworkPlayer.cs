@@ -22,6 +22,8 @@ public class NetworkPlayer : NetworkComponent
     public string Team = "";
     NetworkedGM gm;
 
+    public bool lavaRise = true;
+
 
     public override void HandleMessage(string flag, string value)
     {
@@ -108,6 +110,11 @@ public class NetworkPlayer : NetworkComponent
                     }
                 }
             }
+        }
+
+        if(flag == "SHOWLAVA" && IsClient)
+        {
+            this.transform.GetChild(0).GetComponent<Canvas>().transform.GetChild(2).gameObject.SetActive(bool.Parse(value));
         }
 
     }
@@ -215,11 +222,22 @@ public class NetworkPlayer : NetworkComponent
 
         while(true)
         {
-
+            
             if(IsServer)
             {
-
-                if(IsDirty)
+                //Choose to toggle display of lava rising
+                //Check if value has changed
+                if(gm.lava.lavaWarning && lavaRise)
+                {
+                    SendUpdate("SHOWLAVA", lavaRise.ToString());
+                    lavaRise = false;
+                }
+                else if(!lavaRise && !gm.lava.lavaWarning)
+                {
+                    SendUpdate("SHOWLAVA", lavaRise.ToString());
+                    lavaRise = true;
+                }
+                if (IsDirty)
                 {
                     //Update non-movement varialbes
                     SendUpdate("PNAME", PNAME);

@@ -8,6 +8,7 @@ public class Lava : NetworkComponent
     int currentLevel = 0;
     public float[] levels;
     public bool canMove;
+    public bool lavaWarning;
 
     public Rigidbody myRig;
     public override void HandleMessage(string flag, string value)
@@ -34,6 +35,7 @@ public class Lava : NetworkComponent
 
     public IEnumerator LavaDelay(float time)
     {
+        lavaWarning = true;
         yield return new WaitForSeconds(time);
         canMove = true;
     }
@@ -47,6 +49,7 @@ public class Lava : NetworkComponent
         {
             myRig.velocity = Vector3.zero;
             canMove = false;
+            lavaWarning = false;
             currentLevel++;
         }
         

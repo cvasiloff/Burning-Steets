@@ -23,7 +23,7 @@ public class NetworkedGM : NetworkComponent
     public Vector3[] newControlPoint;
     public int currControlPoint = 0;
 
-    Lava lava;
+    public Lava lava;
 
     public override void HandleMessage(string flag, string value)
     {
