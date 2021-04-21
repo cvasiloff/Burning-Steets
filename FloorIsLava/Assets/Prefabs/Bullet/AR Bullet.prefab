@@ -142,7 +142,7 @@ MonoBehaviour:
   MyCore: {fileID: 0}
   MyId: {fileID: 0}
   MyType: 14
-  speed: 10
+  speed: 8
   ExplosionRadius: 8
   ExplosionPower: 4
   ExplosionEffect: {fileID: 8100153557510036636}
