@@ -307,7 +307,6 @@ public class NetworkPlayerController : NetworkComponent
 
         while (true)
         {
-
             if (IsLocalPlayer && IsClient && !NP.IsPaused)
             {
                 SendCommand("MOVE", Input.GetAxisRaw("Vertical").ToString() + ',' + Input.GetAxisRaw("Horizontal").ToString(), false);
@@ -350,10 +349,19 @@ public class NetworkPlayerController : NetworkComponent
                 {
                     if(Weapons.Contains(i/3) && WeaponParent.transform.GetChild(i / 3).GetComponent<Weapon>() != null)
                     {
+                        WeaponPanel.transform.GetChild(i + 1).GetComponent<Text>().text = WeaponParent.transform.GetChild(i / 3).GetComponent<Weapon>().ItemName;
                         WeaponPanel.transform.GetChild(i + 2).GetComponent<Text>().text = WeaponParent.transform.GetChild(i / 3).GetComponent<Weapon>().CurrentAmmo.ToString();
                     }
+                    else if(Weapons.Contains(i / 3) && WeaponParent.transform.GetChild(i / 3).GetComponent<Weapon>() == null && WepInHand != null)
+                    {
+                        WeaponPanel.transform.GetChild(i + 1).GetComponent<Text>().text = WepInHand.ItemName;
+                        WeaponPanel.transform.GetChild(i + 2).GetComponent<Text>().text = WepInHand.CurrentAmmo.ToString();
+                    }
                 }
-
+                if(WepInHand != null)
+                {
+                    AmmoPanel.transform.GetChild(1).GetComponent<Text>().text = WepInHand.CurrentAmmo.ToString();
+                }
                 ScorePanel.transform.GetChild(1).GetComponent<Text>().text = gm.scoreTeamRed.ToString();
                 ScorePanel.transform.GetChild(3).GetComponent<Text>().text = gm.scoreTeamGreen.ToString();
             }
@@ -472,6 +480,18 @@ public class NetworkPlayerController : NetworkComponent
         if(IsClient)
         {
             myAnime.SetInteger("animState", animState);
+        }
+
+        if(IsClient && IsLocalPlayer)
+        {
+            if (NP.IsPaused)
+            {
+                WeaponPanel.transform.parent.gameObject.SetActive(false);
+            }
+            else if (!NP.IsPaused && !WeaponPanel.transform.parent.gameObject.activeSelf)
+            {
+                WeaponPanel.transform.parent.gameObject.SetActive(true);
+            }
         }
     }
 

@@ -95,10 +95,12 @@ MonoBehaviour:
   BulletSpawn: {fileID: 5232489689171595208}
   MyPos: {x: 0, y: 0, z: 0}
   MyRot: {x: 0, y: 0, z: 0}
+  FireSound: {fileID: 8300000, guid: 8fd73a1914610f74c8e22076cb87ca70, type: 3}
+  ReloadSound: {fileID: 8300000, guid: 3623318ab76ce8b48b7384d05d9372f3, type: 3}
   MaxAmmo: 10000000
   CurrentAmmo: 0
   IsInInventory: 0
-  ROF: 0.5
+  ROF: 0.7
   CanShoot: 0
   Projectile: {fileID: 76577849346128645, guid: e105ea83faf9fc34aaa93e77625e79e9,
     type: 3}

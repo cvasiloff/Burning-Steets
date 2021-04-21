@@ -374,6 +374,11 @@ public class NetworkPlayer : NetworkComponent
         PauseMenu.transform.GetChild(1).gameObject.SetActive(!PauseMenu.transform.GetChild(1).gameObject.activeSelf);
     }
 
+    public void Quit()
+    {
+        MyCore.UI_Quit();
+    }
+
     // Update is called once per frame
     void Update()
     {
