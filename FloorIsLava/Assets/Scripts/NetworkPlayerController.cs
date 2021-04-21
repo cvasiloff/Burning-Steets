@@ -272,6 +272,8 @@ public class NetworkPlayerController : NetworkComponent
             }
                 
             this.transform.GetChild(0).GetComponent<SkinnedMeshRenderer>().enabled = false;
+            this.transform.GetChild(7).GetChild(0).GetComponent<Text>().enabled = false;
+
             WeaponPanel.transform.parent.gameObject.SetActive(true);
         }
 
