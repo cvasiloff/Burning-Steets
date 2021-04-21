@@ -140,6 +140,10 @@ MonoBehaviour:
   MyCore: {fileID: 0}
   MyId: {fileID: 0}
   NNMA: {fileID: 0}
+  boxSpawn: 0
+  boxCount: 0
+  ItemPads:
+  - {fileID: 172353644202824635, guid: 25e7311ba54b49040800fccd3fa513ed, type: 3}
 --- !u!114 &2170490861425393026
 MonoBehaviour:
   m_ObjectHideFlags: 0

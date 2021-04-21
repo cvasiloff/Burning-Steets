@@ -10,6 +10,8 @@ public class PlaneControlScript : NetworkComponent
     public bool boxSpawn = false;
     public int boxCount = 0;
 
+    public GameObject[] ItemPads;
+
     public override void HandleMessage(string flag, string value)
     {
         if (flag == "POINT" && IsClient)
@@ -34,6 +36,11 @@ public class PlaneControlScript : NetworkComponent
                     //StartCoroutine(TryBoxSpawn());
                     boxSpawn = true;
                 }
+                else if (boxCount >= 8)
+                {
+                    ItemContainer[] temp = FindObjectsOfType<ItemContainer>();
+                    boxCount = temp.Length;
+                }
             }
 
             yield return new WaitForSeconds(10);
@@ -51,6 +58,7 @@ public class PlaneControlScript : NetworkComponent
             if (boxSpawn)
             {
                 GameObject temp = MyCore.NetCreateObject(8, this.Owner, this.transform.position + new Vector3(0, -1, 0));
+                temp.GetComponent<CrateScript>().ItemSpawn = Random.Range(1,ItemPads.Length);
                 boxCount++;
                 boxSpawn = false;
             }

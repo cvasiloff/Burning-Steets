@@ -6,6 +6,8 @@ using NETWORK_ENGINE;
 public class CrateScript : NetworkComponent
 {
     private int switched = 1;
+
+    public int ItemSpawn;
     // Start is called before the first frame update
     void Start()
     {
@@ -20,10 +22,15 @@ public class CrateScript : NetworkComponent
 
     private void OnCollisionEnter(Collision collision)
     {
-        if(IsServer && switched >= 1)
+        if(collision.gameObject.name == "Lava")
+        {
+            MyCore.NetDestroyObject(this.NetId);
+        }
+        else if(IsServer && switched >= 1)
         {
             switched -= 1;
-            GameObject temp = MyCore.NetCreateObject(9, this.Owner, this.transform.position);
+            GameObject temp = MyCore.NetCreateObject(8 +ItemSpawn, this.Owner, this.transform.position);
+            //temp.GetComponent<ItemContainer>().ISCrateDrop = true;
             MyCore.NetDestroyObject(this.NetId);
         }
     }
