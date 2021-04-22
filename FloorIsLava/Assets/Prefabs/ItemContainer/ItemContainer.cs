@@ -26,11 +26,6 @@ public class ItemContainer : NetworkComponent
             IsAvalible = true;
             MyRig.gameObject.SetActive(true);
         }
-
-        if(flag == "REMOVE")
-        {
-            MyCore.NetDestroyObject(NetId);
-        }
     }
 
     public IEnumerator ItemRespawn(float Timer)
@@ -78,7 +73,7 @@ public class ItemContainer : NetworkComponent
             }
             if(IsCrateDrop)
             {
-                SendUpdate("REMOVE", "1");
+                MyCore.NetDestroyObject(NetId);
             }
             else
             {
