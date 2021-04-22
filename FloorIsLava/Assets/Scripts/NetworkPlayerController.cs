@@ -425,9 +425,19 @@ public class NetworkPlayerController : NetworkComponent
     // Start is called before the first frame update
     void Start()
     {
+        MyCam = Camera.main;
+        sensitivity = PlayerPrefs.GetFloat("sensitivity");
+        if(sensitivity <= 0)
+        {
+            sensitivity = 5;
+        }
+        if(PlayerPrefs.GetFloat("volume") > 0)
+        {
+            AudioListener.volume = PlayerPrefs.GetFloat("volume");
+        }
         MyName = this.transform.GetChild(7).GetComponent<Canvas>();
         MyRig = GetComponent<Rigidbody>();
-        MyCam = Camera.main;
+
         myAnime = this.GetComponent<Animator>();
         gm = FindObjectOfType<NetworkedGM>();
         JumpNum = MaxJumpNum;

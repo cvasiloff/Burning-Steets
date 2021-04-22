@@ -26,6 +26,4 @@ public class ValueUpdate : MonoBehaviour
         if (my_slider) { my_slider.value = float.Parse(value); }
         if (my_field) { my_field.text = value; }
     }
-
-
 }
