@@ -30,7 +30,7 @@ public class CrateScript : NetworkComponent
         {
             switched -= 1;
             GameObject temp = MyCore.NetCreateObject(8 +ItemSpawn, this.Owner, this.transform.position);
-            //temp.GetComponent<ItemContainer>().ISCrateDrop = true;
+            temp.GetComponent<ItemContainer>().IsCrateDrop = true;
             MyCore.NetDestroyObject(this.NetId);
         }
     }

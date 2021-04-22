@@ -144,6 +144,8 @@ MonoBehaviour:
   boxCount: 0
   ItemPads:
   - {fileID: 172353644202824635, guid: 25e7311ba54b49040800fccd3fa513ed, type: 3}
+  - {fileID: 3347592681421643224, guid: 2182fe8dcc868a348a2416c7808b13fa, type: 3}
+  - {fileID: 5353256691805392107, guid: 804524d4766e5f34793d3fa18a7a23ce, type: 3}
 --- !u!114 &2170490861425393026
 MonoBehaviour:
   m_ObjectHideFlags: 0
