@@ -49,7 +49,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &3060685997873766920
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2314,9 +2314,9 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 6210770198402633360}
-  - {fileID: 8427763065178806530}
-  - {fileID: 297770895565703127}
-  - {fileID: 3337481463018687003}
+  - {fileID: 9213238128867136172}
+  - {fileID: 5307330578026445455}
+  - {fileID: 687383124857740978}
   - {fileID: 1060816509218096016}
   m_Father: {fileID: 3552550879135516077}
   m_RootOrder: 1
@@ -4318,7 +4318,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a09cb06750756d84ab4ba611f44584aa, type: 3}
---- !u!4 &3337481463018687003 stripped
+--- !u!4 &687383124857740978 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2871905655660238192, guid: a09cb06750756d84ab4ba611f44584aa,
     type: 3}
@@ -4331,16 +4331,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 8377923326035345601}
     m_Modifications:
-    - target: {fileID: 8925520793197579596, guid: 20f79bc78df2afd4e9fbf33c0e51bc5c,
-        type: 3}
-      propertyPath: m_Name
-      value: Assult Rifle (1)
-      objectReference: {fileID: 0}
-    - target: {fileID: 8925520793197579596, guid: 20f79bc78df2afd4e9fbf33c0e51bc5c,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 5586301955043589983, guid: 20f79bc78df2afd4e9fbf33c0e51bc5c,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -4406,9 +4396,19 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 100.00022
       objectReference: {fileID: 0}
+    - target: {fileID: 8925520793197579596, guid: 20f79bc78df2afd4e9fbf33c0e51bc5c,
+        type: 3}
+      propertyPath: m_Name
+      value: Assult Rifle (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8925520793197579596, guid: 20f79bc78df2afd4e9fbf33c0e51bc5c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 20f79bc78df2afd4e9fbf33c0e51bc5c, type: 3}
---- !u!4 &297770895565703127 stripped
+--- !u!4 &5307330578026445455 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5586301955043589983, guid: 20f79bc78df2afd4e9fbf33c0e51bc5c,
     type: 3}
@@ -4516,16 +4516,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 8377923326035345601}
     m_Modifications:
-    - target: {fileID: 4428669285509953546, guid: 729c578c96347e146985753cbab6bf09,
-        type: 3}
-      propertyPath: m_Name
-      value: RocketLauncher2 (1)
-      objectReference: {fileID: 0}
-    - target: {fileID: 4428669285509953546, guid: 729c578c96347e146985753cbab6bf09,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 805742567715375641, guid: 729c578c96347e146985753cbab6bf09,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -4596,9 +4586,19 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 200
       objectReference: {fileID: 0}
+    - target: {fileID: 4428669285509953546, guid: 729c578c96347e146985753cbab6bf09,
+        type: 3}
+      propertyPath: m_Name
+      value: RocketLauncher2 (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 4428669285509953546, guid: 729c578c96347e146985753cbab6bf09,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 729c578c96347e146985753cbab6bf09, type: 3}
---- !u!4 &8427763065178806530 stripped
+--- !u!4 &9213238128867136172 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 805742567715375641, guid: 729c578c96347e146985753cbab6bf09,
     type: 3}

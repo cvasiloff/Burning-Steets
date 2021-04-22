@@ -48,7 +48,7 @@ public class ProducerConsumerQueue <T>
                 return temp;
             }
         }
-        return default;
+        return default(T);
     }
 
     public bool IsEmpty()
@@ -317,7 +317,7 @@ public class Connector
     public ProducerConsumerQueue<string> TCPMessage;
     public byte[] TCPbuffer = new byte[1024]; 
     public bool TCPIsSending = false;
-    public int ConnectionID = -1;
+    public int ConnectionID = -10;
 
 
     //UDP class variables.
@@ -388,12 +388,12 @@ public class Connector
                 }
                 int byteRead = -10;
                 string tempMessage = "";
-                while (this.NetSystem.IsConnected && (tempMessage == "" || tempMessage.EndsWith("\n") == false || byteRead == 0))
+                while (this.NetSystem.IsConnected && (tempMessage == "" || byteRead == 0)) //|| tempMessage.EndsWith("\n") == false 
                 {  
-                    byteRead = TCPSocket.Receive(TCPbuffer, 1024, SocketFlags.None);
+                    byteRead += TCPSocket.Receive(TCPbuffer, 1024, SocketFlags.None);
                     //TCPMessage.Append(Encoding.ASCII.GetString(TCPbuffer));
                     tempMessage += Encoding.ASCII.GetString(TCPbuffer);
-                    TCPbuffer = new byte[1024];
+                    TCPbuffer = new byte[1024];           
                 }
                 TCPMessage.Append(tempMessage);
                 string[] tempArgs = tempMessage.Split('\n');
@@ -497,10 +497,12 @@ public class Connector
                     {
                         break;
                     }
-                    EndPoint tempUdpEp2 = TCPSocket.RemoteEndPoint;
+                    EndPoint tempUdpEp2 = UDPSocketS.RemoteEndPoint;
+                    //EndPoint tempUdpEp2 = new IPEndPoint(TCPSocket.
+
                     int bytesRead = -10;
                     string tempMessage = "";
-                    while (this.NetSystem.IsConnected && (tempMessage == "" || tempMessage.EndsWith("\n") == false || bytesRead == 0))
+                    while (this.NetSystem.IsConnected && (tempMessage == "" || bytesRead == 0))  //|| tempMessage.EndsWith("\n") == false 
                     {
                         bytesRead = UDPSocketR.ReceiveFrom(UDPbuffer, 1024, SocketFlags.None, ref tempUdpEp2);
                         tempMessage += Encoding.ASCII.GetString(UDPbuffer);
@@ -534,7 +536,7 @@ public class Connector
             try
             {
                 byte[] byteData = ASCIIEncoding.ASCII.GetBytes(msg+"\n");
-                int check = UDPSocketS.SendTo(byteData, TCPSocket.RemoteEndPoint);//  Send(byteData);
+                int check = UDPSocketS.SendTo(byteData, TCPSocket.RemoteEndPoint);//  Send(byteData);               
                 if (check != byteData.Length)
                 {
                     throw new System.Exception("ERROR: Socket did not send as many bytes as it was supposed to!");
@@ -620,14 +622,15 @@ public class ThreadNetworkSocket
             Connector temp = new Connector(this,UsingUDP);
             temp.ThreadTimer = ThreadTimer;
             Accept(temp, Handler, ConCounter);
-            temp.TCP_Send("ID#" + ConCounter + "\n");
+            temp.ConnectionID = ConCounter;
+            temp.TCP_Send("ID#" + temp.ConnectionID + "\n");
             Thread.Sleep(500);
+            Connections.Add(temp.ConnectionID, temp);
             while (!temp.DidClientRecvId)
             {
-                temp.TCP_Send("ID#" + ConCounter + "\n");
+                temp.TCP_Send("ID#" + temp.ConnectionID + "\n");
                 Thread.Sleep(10);
             }
-            Connections.Add(ConCounter, temp);
             ConCounter +=1;
         }
     }
@@ -648,8 +651,12 @@ public class ThreadNetworkSocket
         c.TCPRecvThread.Start();
         if (UsingUDP)
         {
-            c.UDPSocketS.Connect(c.TCPSocket.RemoteEndPoint);
-            c.UDPSocketR.Bind(c.TCPSocket.LocalEndPoint);
+            IPEndPoint remote = c.TCPSocket.RemoteEndPoint as IPEndPoint;
+            Debug.Log("REMOTE END POINT IP: " + remote.Address.ToString());
+            
+            c.UDPSocketS.Connect(new IPEndPoint(remote.Address,PortNumber));
+            //Debug.Log("REMOTE END POINT PORT: " + remote.Port.ToString());
+            c.UDPSocketR.Bind(new IPEndPoint(IPAddress.Any, PortNumber));//c.TCPSocket.LocalEndPoint);
             c.UDPRecvThread = new Thread(c.UDP_Recv);
             c.UDPRecvThread.Start();
         }
@@ -911,9 +918,9 @@ public class GenericNetworkCore : MonoBehaviour
                     {
                         OnHandleMessages(x);
                     }
-                    catch
+                    catch (System.Exception e)
                     {
-                        GenericNetworkCore.Logger("UDP malformed a packet.");
+                        GenericNetworkCore.Logger("UDP malformed a packet, or exception in Handle Message : "+e.ToString());
                     }
                 }
             }
@@ -949,9 +956,9 @@ public class GenericNetworkCore : MonoBehaviour
                     {
                         OnHandleMessages(x);
                     }
-                    catch
+                    catch (System.Exception e)
                     {
-                        GenericNetworkCore.Logger("UDP malformed a packet.");
+                        GenericNetworkCore.Logger("TCP malformed a packet - or exception in handle message: " + e.ToString());
                     }
                 }
             }

@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using NETWORK_ENGINE;
+using System.Text;
 
 
 ///This code was written by Dr. Bradford A. Towle Jr.
@@ -100,9 +101,12 @@ public class LobbyManager : GenericNetworkCore
                     LocalGameID = int.Parse(temp[3]);
                     GenericNetworkCore.Logger("The number of Max connections is: " + MyCore.MaxConnections);
                     MyCore.PortNumber = port;
+                    IP = "127.0.0.1";
                     StartAgent();
-                    MyCore.IP = this.IP;
-                    MyCore.UI_StartServer();
+
+                    //StartCoroutine(SlowAgentStart());
+                    //MyCore.IP = this.IP;
+                    
                     StartCoroutine(SlowStart());
                 }
             }
@@ -120,7 +124,6 @@ public class LobbyManager : GenericNetworkCore
         {
             StartCoroutine(SlowAgentStart());
         }
-        SceneManager.sceneUnloaded += OnSceneExit;
 
         //Maintained on clients with same ID as Lobby.
         GameRoomButtons = new ExclusiveDictionary<int, GameRoomButton>();
@@ -139,41 +142,54 @@ public class LobbyManager : GenericNetworkCore
     public IEnumerator SlowAgentStart()
     {
         bool UsePublic = false;
-        Ping ping = new Ping(PublicIP);
-        yield return new WaitForSeconds(.1f);
-        while (!ping.isDone)
+        bool UseFlorida = false;
+
+        //Ping Public Ip address to see if we are external..........
+        GenericNetworkCore.Logger("Trying Public IP Address: " + PublicIP.ToString());
+        System.Net.NetworkInformation.Ping ping = new System.Net.NetworkInformation.Ping();
+        System.Net.NetworkInformation.PingOptions po = new System.Net.NetworkInformation.PingOptions();
+        po.DontFragment = true;
+        string data = "HELLLLOOOOO!";
+        byte[] buffer = ASCIIEncoding.ASCII.GetBytes(data);
+        int timeout = 500;
+        System.Net.NetworkInformation.PingReply pr = ping.Send(PublicIP, timeout, buffer, po);
+        yield return new WaitForSeconds(1.5f);
+        Debug.Log("Ping Return: " + pr.Status.ToString());
+        if(pr.Status == System.Net.NetworkInformation.IPStatus.Success)
         {
-            yield return new WaitForSeconds(1);     
-            if(ping.time == -1)
+            GenericNetworkCore.Logger("The public IP responded with a roundtrip time of: " + pr.RoundtripTime);
+            UsePublic = true;
+            IP = PublicIP;
+        }
+        else
+        {
+            GenericNetworkCore.Logger("The public IP failed to respond");
+            UsePublic = false;
+        }
+        //-------------------If not public, ping Florida Poly for internal access.
+        if(!UsePublic)
+        {
+            GenericNetworkCore.Logger("Trying Florida Poly Address: " + FloridaPolyIP.ToString());
+            pr = ping.Send(FloridaPolyIP, timeout, buffer, po);
+            yield return new WaitForSeconds(1.5f);
+            Debug.Log("Ping Return: " + pr.Status.ToString());
+            if (pr.Status.ToString() == "Success")
             {
-                break;
-            } 
-            if(ping.time >0)
+                GenericNetworkCore.Logger("The Florida Poly IP responded with a roundtrip time of: " + pr.RoundtripTime);
+                UseFlorida = true;
+                IP = FloridaPolyIP;
+            }
+            else
             {
-                UsePublic = true;
-                IP = PublicIP;
-                break;
+                GenericNetworkCore.Logger("The Florida Poly IP failed to respond");
+                UseFlorida = false;
             }
         }
-        ping.DestroyPing();
-        //-------------
-        if (!UsePublic)
+        //Otherwise use local host, assume testing.
+        if(!UsePublic && !UseFlorida)
         {
-            ping = new Ping(FloridaPolyIP);
-            while (!ping.isDone)
-            {
-                yield return new WaitForSeconds(1);
-                if (ping.time == -1)
-                {
-                    break;
-                }
-                if(ping.time >0)
-                {
-
-                    IP = FloridaPolyIP;
-                }
-            }
-            ping.DestroyPing();
+            IP = "127.0.0.1";
+            GenericNetworkCore.Logger("Using Home Address!");
         }
         this.StartAgent();
     }
@@ -186,21 +202,14 @@ public class LobbyManager : GenericNetworkCore
     public IEnumerator SlowStart()
     {
         yield return new WaitForSeconds(1);
-        yield return new WaitUntil( () =>IsConnected);
+        yield return new WaitUntil( () =>LocalConnectionID >=0);
+        MyCore.UI_StartServer();
+        yield return new WaitUntil( ()=>MyCore.IsServer);
         Send("ISSERVER#" + LocalGameID + "#" + LocalConnectionID + "\n", 0);
         IsGameServer = true;
     }
 
-    /// <summary>
-    /// Used in case the scene changes.
-    /// Future work...Should be virtual.
-    /// Currently quits the Lobby Manager.
-    /// </summary>
-    /// <param name="x">x the scene that is being left</param>
-    public virtual void OnSceneExit(Scene x)
-    {
-        SceneManager.sceneUnloaded -= OnSceneExit;
-    }
+
     /// <summary>
     /// This function will start the Lobby Manager Master (server)
     /// </summary>
@@ -397,7 +406,7 @@ public class LobbyManager : GenericNetworkCore
             string[] args = System.Environment.GetCommandLineArgs();
             GenericNetworkCore.Logger("Starting new process " + args[0]);
             proc.StartInfo.FileName = args[0];
-            proc.StartInfo.Arguments = "PORT_" + temp.Port + "_GAMEID_" + temp.GameID+" -batchmode -nographics";               
+            proc.StartInfo.Arguments = "PORT_" + temp.Port + "_GAMEID_" + temp.GameID +" -batchmode -nographics";               
             temp.MyProcess = proc;
             temp.ProcessTTL = MaxGameTime;
             GenericNetworkCore.Logger("PORT_" + temp.Port + "_GAMEID_" + temp.GameID + "\nTTL " + temp.ProcessTTL);
@@ -498,7 +507,10 @@ public class LobbyManager : GenericNetworkCore
     public override IEnumerator OnClientConnect(int id)
     {
         yield return new WaitForSeconds(.1f);
-        MyCore.IP = IP;
+        if (IsAgent && !IsGameServer)
+        {
+            MyCore.IP = IP;
+        }
         if (IsMaster)
         {
             foreach (KeyValuePair<int, GameRoom> g in Lobbies)
@@ -588,6 +600,10 @@ public class LobbyManager : GenericNetworkCore
     /// </summary>
     public override void OnSlowUpdate()
     {   
+        if(Console!= null)
+        {
+            Console.text = SystemLog;
+        }
 
         if (IsGameServer)
         {
