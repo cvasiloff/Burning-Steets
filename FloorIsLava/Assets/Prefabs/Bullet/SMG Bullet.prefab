@@ -234,7 +234,7 @@ MonoBehaviour:
   NetId: 0
   MyCore: {fileID: 0}
   MyId: {fileID: 0}
-  MyType: 15
+  MyType: 16
   speed: 12
   ExplosionRadius: 5
   ExplosionPower: 3

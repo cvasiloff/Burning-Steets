@@ -29,7 +29,7 @@ public class CrateScript : NetworkComponent
         else if(IsServer && switched >= 1)
         {
             switched -= 1;
-            GameObject temp = MyCore.NetCreateObject(8 +ItemSpawn, this.Owner, this.transform.position);
+            GameObject temp = MyCore.NetCreateObject(12 +ItemSpawn, this.Owner, this.transform.position);
             temp.GetComponent<ItemContainer>().IsCrateDrop = true;
             MyCore.NetDestroyObject(this.NetId);
         }
