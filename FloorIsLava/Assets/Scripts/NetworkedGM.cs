@@ -208,7 +208,7 @@ public class NetworkedGM : NetworkComponent
         //Activate Next Checkpoint
         if (newControlPoint.Length > currControlPoint+1)
         {
-            MyCore.NetCreateObject(2, -1, newControlPoint[currControlPoint+1]);
+            MyCore.NetCreateObject(2, -1, newControlPoint[currControlPoint]);
             currControlPoint++;
             SendUpdate("CURRCP",currControlPoint.ToString());
             //Move Lava, but wait for x seconds
