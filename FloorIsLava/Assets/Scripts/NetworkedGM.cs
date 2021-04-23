@@ -127,8 +127,7 @@ public class NetworkedGM : NetworkComponent
             SendUpdate("GAMESTART", "1");
 
             MyCore.NotifyGameStart();
-            if (GameObject.FindGameObjectWithTag("NetworkManager").GetComponent<LobbyManager>() != null)
-                GameObject.FindGameObjectWithTag("NetworkManager").GetComponent<LobbyManager>().NotifyGameStarted();
+            
 
 
 
