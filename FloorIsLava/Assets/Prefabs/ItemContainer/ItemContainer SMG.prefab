@@ -299,4 +299,4 @@ MonoBehaviour:
   MyRig: {fileID: 0}
   ItemPosition: {fileID: 5353256691805392096}
   IsWeapon: 1
-  IsCrateDrop: 0
+  IsCrateDrop: 1

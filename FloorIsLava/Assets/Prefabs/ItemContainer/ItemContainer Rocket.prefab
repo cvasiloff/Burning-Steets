@@ -270,4 +270,4 @@ MonoBehaviour:
   MyRig: {fileID: 0}
   ItemPosition: {fileID: 172353644202824669}
   IsWeapon: 1
-  IsPower: 0
+  IsCrateDrop: 1

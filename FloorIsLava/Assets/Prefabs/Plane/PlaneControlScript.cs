@@ -58,7 +58,7 @@ public class PlaneControlScript : NetworkComponent
             if (boxSpawn)
             {
                 GameObject temp = MyCore.NetCreateObject(12, this.Owner, this.transform.position + new Vector3(0, -1, 0));
-                temp.GetComponent<CrateScript>().ItemSpawn = Random.Range(1,ItemPads.Length);
+                temp.GetComponent<CrateScript>().ItemSpawn = Random.Range(1,ItemPads.Length+1);
                 boxCount++;
                 boxSpawn = false;
             }
