@@ -65,7 +65,6 @@ public class ItemContainer : NetworkComponent
     {
         if(IsServer && collision.gameObject.tag == "Player" && IsAvalible)
         {
-            Debug.Log("player entered");
             IsAvalible = false;
             if (IsWeapon)
             {

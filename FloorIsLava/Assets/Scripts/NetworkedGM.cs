@@ -197,9 +197,9 @@ public class NetworkedGM : NetworkComponent
     public IEnumerator KillGame()
     {
         yield return new WaitForSeconds(10);
-
+        PlaneControlScript plane = GameObject.FindObjectOfType<PlaneControlScript>();
+        MyCore.NetDestroyObject(plane.NetId);
         MyCore.UI_Quit();
-
     }
 
     public void NextPhase()

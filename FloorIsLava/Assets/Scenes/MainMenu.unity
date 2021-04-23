@@ -5585,8 +5585,20 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: "Models - PolygonSight\nCrates - PixelHole\nSong - <Song used>\nSounds:\n\t<Sound
-    used>\n\t<Sound used>\n\t<Sound used>\n\t<Sound used>\n\t<Sound used>\n"
+  m_Text: 'Models - PolygonSight
+
+    Crates - PixelHole
+
+
+    Sounds Courtesy of:
+
+    www.fesliyanstudios.com
+
+    www.soundbible.com
+
+    www.mixkit.com
+
+'
 --- !u!222 &217489020
 CanvasRenderer:
   m_ObjectHideFlags: 0
