@@ -199,7 +199,7 @@ public class NetworkPlayer : NetworkComponent
             if(gm.redPlayers <= gm.greenPlayers)
             {
                 //Assign to Red Model
-                MyCore.NetCreateObject(11, Owner, new Vector3(-18 + ((Owner * 2) % 10), 89, -112));
+                MyCore.NetCreateObject(11, Owner, new Vector3(-18 + ((Owner * 2) % 10), 48, -296));
                 ModelNum = 11;
                 gm.redPlayers++;
                 Team = "RED";
@@ -208,7 +208,7 @@ public class NetworkPlayer : NetworkComponent
             else
             {
                 //Assign to Green Model
-                MyCore.NetCreateObject(10, Owner, new Vector3(-18 + ((Owner * 2) % 10), 89, -112));
+                MyCore.NetCreateObject(10, Owner, new Vector3(-18 + ((Owner * 2) % 10), 48, -296));
                 ModelNum = 10;
                 gm.greenPlayers++;
                 Team = "GREEN";

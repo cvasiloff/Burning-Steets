@@ -503,6 +503,7 @@ public class NetworkPlayerController : NetworkComponent
                 WeaponPanel.transform.parent.gameObject.SetActive(true);
             }
         }
+
     }
 
     private void LateUpdate()

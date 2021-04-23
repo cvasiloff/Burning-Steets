@@ -44,6 +44,7 @@ public class NetworkCore : GenericNetworkCore
         MasterMessage = new ExclusiveString();
         UDPMasterMessage.SetData("");
         MasterMessage.SetData("");
+        UsingUDP = false;
     }
     
     /// <summary>

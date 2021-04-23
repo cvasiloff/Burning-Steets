@@ -324,7 +324,7 @@ MonoBehaviour:
   captureGreen: 0
   isCaptured: 0
   captureDir: 0
-  captureTime: 30
+  captureTime: 15
   captureTimer: 0
   flagVel: {x: 0, y: 0, z: 0}
   myFlag: {fileID: 0}
