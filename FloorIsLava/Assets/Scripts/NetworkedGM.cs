@@ -196,10 +196,10 @@ public class NetworkedGM : NetworkComponent
 
     public IEnumerator KillGame()
     {
-        Debug.Log("The Game Is Over!");
         yield return new WaitForSeconds(10);
-        Debug.Log("Goodbye!");
+
         MyCore.UI_Quit();
+
     }
 
     public void NextPhase()
@@ -217,7 +217,7 @@ public class NetworkedGM : NetworkComponent
         {
             //Set end game to true
             //Declare Winner
-            Debug.Log("No More Control Points!");
+
         }
         
     }

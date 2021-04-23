@@ -159,7 +159,6 @@ public class NetworkPlayerController : NetworkComponent
 
         if(flag == "JUMP")
         {
-            Debug.Log("Jumping!");
             if (IsServer)
             {
                 MyRig.velocity = new Vector3(MyRig.velocity.x, JumpHeight, MyRig.velocity.z);
@@ -514,7 +513,6 @@ public class NetworkPlayerController : NetworkComponent
 
     public void ResetJump()
     {
-        Debug.Log("Jump Resetting!");
         JumpNum = MaxJumpNum;
     }
 

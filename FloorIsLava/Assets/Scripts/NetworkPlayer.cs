@@ -300,7 +300,6 @@ public class NetworkPlayer : NetworkComponent
             {
                 if(p.Team == "RED")
                 {
-                    Debug.Log(gm.TeamRedSpawn[0].transform.GetChild(0).transform.position);
                     MyCore.NetCreateObject(player.Type, player.Owner, 
                         gm.TeamRedSpawn[gm.currControlPoint].transform.GetChild(p.Owner%7).transform.position, 
                         gm.TeamRedSpawn[gm.currControlPoint].transform.GetChild(p.Owner % 7).transform.rotation);
