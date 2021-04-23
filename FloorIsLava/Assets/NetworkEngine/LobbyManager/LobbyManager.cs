@@ -89,7 +89,7 @@ public class LobbyManager : GenericNetworkCore
             throw new System.Exception("Could not find core!");
         }
         string[] args = System.Environment.GetCommandLineArgs();
-        GenericNetworkCore.Logger(System.Environment.CommandLine);
+        //GenericNetworkCore.Logger(System.Environment.CommandLine);
         foreach (string a in args)
         {
             try
@@ -145,7 +145,7 @@ public class LobbyManager : GenericNetworkCore
         bool UseFlorida = false;
 
         //Ping Public Ip address to see if we are external..........
-        GenericNetworkCore.Logger("Trying Public IP Address: " + PublicIP.ToString());
+        //GenericNetworkCore.Logger("Trying Public IP Address: " + PublicIP.ToString());
         System.Net.NetworkInformation.Ping ping = new System.Net.NetworkInformation.Ping();
         System.Net.NetworkInformation.PingOptions po = new System.Net.NetworkInformation.PingOptions();
         po.DontFragment = true;
