@@ -195,7 +195,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 6911634883404302336}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1245fa9dfe2c47a4ba554d698f69f343, type: 3}
+  m_Script: {fileID: 11500000, guid: f34ca87a457962d459c49c36b9753ca5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Type: 0
@@ -230,6 +230,12 @@ MonoBehaviour:
   MyId: {fileID: 0}
   myAnime: {fileID: 0}
   animState: 0
+  MyName: {fileID: 0}
+  PNAME: 
+  Sound: {fileID: 0}
+  WeaponPanel: {fileID: 0}
+  AmmoPanel: {fileID: 0}
+  ScorePanel: {fileID: 0}
   Filler: {fileID: 4626227154740180957}
   WepInHand: {fileID: 0}
   MaxWepCount: 5
@@ -348,7 +354,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4498573040250536822}
-  - {fileID: 6274446029939859690}
+  - {fileID: 6274446029939859456}
   - {fileID: 2339506030907018160}
   m_Father: {fileID: 8969377622604278201}
   m_RootOrder: 1
@@ -552,7 +558,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 729c578c96347e146985753cbab6bf09, type: 3}
---- !u!4 &6274446029939859690 stripped
+--- !u!4 &6274446029939859456 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 805742567715375641, guid: 729c578c96347e146985753cbab6bf09,
     type: 3}

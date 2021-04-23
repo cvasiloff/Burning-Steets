@@ -86,7 +86,6 @@ public class Bullet : NetworkComponent
             }
             SendUpdate("EXPLO", "1");
             StartCoroutine(Despawn(1));
-            Debug.Log(other.name);
             GetComponent<Rigidbody>().velocity = Vector3.zero;
         }
     }
